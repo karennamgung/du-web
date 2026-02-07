@@ -1,0 +1,13 @@
+// =============================================================================
+// 스타일 진입점 — primitives, semantic, mixins, components 토큰 통합
+// 사용: @use '@/assets/styles/index' as v;
+// =============================================================================
+
+@forward 'abstracts/primitives/colors';
+@forward 'abstracts/primitives/typography';
+@forward 'abstracts/primitives/spacing';
+@forward 'abstracts/primitives/effects';
+@forward 'abstracts/primitives/depth';
+@forward 'abstracts/semantic/colors';
+@forward 'abstracts/semantic/typography';
+@forward 'abstracts/mixins';

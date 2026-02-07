@@ -1,0 +1,133 @@
+<template>
+  <div 
+    class="map-container-wrapper"
+    :class="{ 'map-container-wrapper-mobile': isMobile }"
+    :style="isMobile ? { bottom: `${bottomSheetHeight}px` } : {}"
+  >
+    <div ref="mapContainerRef" class="map-container" />
+    <div class="map-controls">
+      <button
+        type="button"
+        class="btn btn-gray btn-small btn-icon btn-rounded shadow-md"
+        title="확대"
+        :disabled="!hasMap"
+        @click="$emit('zoomIn')"
+      >
+        <Icon class="icon-xs" :path="mdiPlus" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-gray btn-small btn-icon btn-rounded shadow-md"
+        title="축소"
+        :disabled="!hasMap"
+        @click="$emit('zoomOut')"
+      >
+        <Icon class="icon-xs" :path="mdiMinus" />
+      </button>
+      <button
+        v-if="hasMyNeighborhood"
+        type="button"
+        class="btn btn-gray btn-rounded btn-small shadow-md"
+        title="내 위치와 학원 밀집 지역으로 이동"
+        :disabled="!hasMap"
+        @click="$emit('resetToDefault')"
+      >
+        내 동네 학원
+      </button>
+      <button
+        type="button"
+        class="btn btn-gray btn-rounded btn-small shadow-md"
+        title="현재 지도에 보이는 영역 안의 학원만 목록에 표시"
+        :disabled="!hasMap"
+        @click="$emit('searchVisibleBounds')"
+      >
+        현재 보이는 지역 재검색
+      </button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import Icon from '@/components/Icon.vue'
+import { mdiPlus, mdiMinus } from '@mdi/js'
+
+defineProps<{
+  isMobile: boolean
+  bottomSheetHeight: number
+  hasMap: boolean
+  /** 내 동네(위치)가 지정되어 있을 때만 '내 동네 학원' 버튼 표시 */
+  hasMyNeighborhood: boolean
+}>()
+
+defineEmits<{
+  zoomIn: []
+  zoomOut: []
+  resetToDefault: []
+  searchVisibleBounds: []
+}>()
+
+const mapContainerRef = ref<HTMLElement | null>(null)
+
+defineExpose({
+  mapContainerRef
+})
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/index' as v;
+
+.map-container-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 12.5rem;
+  
+  // 모바일: 지도가 바텀 시트 위쪽만 차지, 학원 목록 아래로 (지도·네이버 저작권 등 z-index 낮춤)
+  @media (max-width: 767px) {
+    &.map-container-wrapper-mobile {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      flex: none;
+      min-height: 0;
+      z-index: v.$z-canvas;
+    }
+  }
+  
+  // 태블릿: 세로 분할 (50:50)
+  @media (min-width: 768px) and (max-width: 1023px) {
+    flex: 0 0 50%;
+    border-right: 1px solid v.$color-border-dim;
+  }
+  
+  // 데스크톱: 가로 분할 (지도 60%, 리스트 40%)
+  @media (min-width: 1024px) {
+    flex: 0 0 60%;
+    border-right: 1px solid v.$color-border-dim;
+  }
+}
+
+.map-controls {
+  position: absolute;
+  bottom: v.$space-lg;
+  right: v.$space-lg;
+  z-index: v.$z-canvas;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: v.$space-sm;
+  pointer-events: none; // 컨테이너는 클릭 통과, 버튼만 클릭 가능
+  
+  button {
+    pointer-events: auto; // 버튼만 클릭 가능
+  }
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 12.5rem;
+}
+</style>

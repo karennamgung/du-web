@@ -1,0 +1,25 @@
+// =============================================================================
+// Primitives: 트랜지션 토큰 및 효과
+// =============================================================================
+
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.25s ease;
+
+// =============================================================================
+// 이미지 확대 효과 Mixin
+// =============================================================================
+
+@mixin image-scale-on-hover($scale: 1.2) {
+  overflow: hidden;
+  
+  img {
+    transition: transform $transition-base;
+    transform: scale(1);
+  }
+  
+  &:hover img,
+  &.active img {
+    transform: scale($scale);
+  }
+}

@@ -1,0 +1,62 @@
+// =============================================================================
+// Semantic: 시멘틱 컬러 (primitives 참조)
+// 계층: dimmer – dim – base – strong – stronger
+// =============================================================================
+
+@use 'sass:color';
+@use '../primitives/colors' as c;
+
+// ---- Primary (브랜드) ----
+$color-primary-dimmer: c.$primary-50;
+$color-primary: c.$primary-500;
+$color-primary-strong: c.$primary-600;
+$color-primary-border: color.change(c.$primary-500, $alpha: 0.4);
+
+// ---- Secondary (브랜드) ----
+$color-secondary-dimmer: c.$secondary-50;
+$color-secondary: c.$secondary-500;
+$color-secondary-strong: c.$secondary-600;
+
+// ---- Text (base = 기본 어두운 본문) ----
+$color-text-dimmer: c.$gray-400;
+$color-text-dim: c.$gray-500;
+$color-text-base: c.$gray-900;
+$color-text-inverse: c.$white;
+
+// ---- BG ----
+// dimmer < dim < base < strong < stronger 순서로 점점 어두워짐
+$color-bg-dimmer: c.$gray-100;  // 가장 밝음
+$color-bg-dim: c.$gray-200;
+$color-bg-base: c.$white;
+$color-bg-strong: c.$gray-500;
+$color-bg-stronger: c.$gray-700;  // 가장 어두움
+$color-bg-hover: $color-bg-dim;
+$color-bg-focus: $color-primary;
+
+// ---- Border ----
+// bg와 같은 밝기 레벨 사용
+$color-border-dimmer: c.$gray-100;  // bg-dimmer와 동일
+$color-border-dim: c.$gray-200;     // bg-dim과 동일
+$color-border-strong: c.$gray-500;  // bg-strong과 동일
+$color-border-stronger: c.$gray-700; // bg-stronger와 동일
+$color-border-focus: $color-primary;
+
+// ---- Accent ----
+$color-accent-favorite: c.$primary-500;
+$color-accent-success: c.$success-500;
+$color-accent-warning: c.$warning-500;
+$color-accent-info: c.$secondary-500;
+$color-accent-negative-chip: c.$negative-500;
+$color-accent-negative-chip-bg: c.$negative-50;
+
+// ---- Overlay ----
+$overlay-backdrop: color.change(c.$black, $alpha: 0.5);
+$overlay-sheet-backdrop: color.change(c.$black, $alpha: 0.4);
+$overlay-loading: color.change(c.$white, $alpha: 0.9);
+
+// ---- Shadow (컬러 토큰 참조) ----
+$shadow-sm: 0 1px 2px color.change(c.$gray-950, $alpha: 0.06);
+$shadow-md: 0 2px 8px color.change(c.$gray-950, $alpha: 0.08);
+$shadow-lg: 0 4px 16px color.change(c.$gray-950, $alpha: 0.12);
+$shadow-focus: 0 0 0 2px color.change(c.$primary-500, $alpha: 0.2);
+$shadow-focus-neutral: 0 0 0 2px color.change(c.$gray-400, $alpha: 0.4);

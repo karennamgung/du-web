@@ -1,0 +1,93 @@
+<template>
+  <header class="flex items-center justify-between flex-wrap gap-md p-md px-xl border-b bg-base">
+    <div class="flex items-center gap-lg flex-wrap">
+      <div class="flex items-center gap-xs">
+        <button
+        v-if="route.path !== '/'"
+        type="button"
+        class="btn btn-icon-only btn-rounded mr-sm"
+        aria-label="뒤로가기"
+        @click="goBack"
+      >
+        <Icon :path="mdiChevronLeft" />
+      </button>
+
+        <template v-if="myNeighborhood.loading">
+          <p class="type-size-sm color-dim">가져오는 중…</p>
+        </template>
+        <template v-else-if="myNeighborhood.name">
+          <h4>{{ myNeighborhood.name }}</h4>
+          <button
+            type="button"
+            class="btn btn-ghost btn-small btn-icon btn-rounded"
+            aria-label="동네 해제"
+            @click="myNeighborhood.clear()"
+          >
+            <Icon class="icon-2xs color-dim" :path="mdiClose" />
+          </button>
+        </template>
+        <template v-else-if="myNeighborhood.error">
+          <p class="color-warning">{{ myNeighborhood.error }}</p>
+          <button
+            type="button"
+            class="btn btn-outline btn-small"
+            @click="myNeighborhood.fetchFromLocation()"
+          >
+            다시 시도
+          </button>
+        </template>
+        <button
+          v-else
+          type="button"
+          class="btn btn-outline"
+          @click="handleLocationClick"
+        >
+          위치 찾기
+        </button>
+      </div>
+      <div id="app-header-search" class="flex-1 min-w-7 max-w-20"></div>
+    </div>
+    <div class="flex items-center gap-md">
+      <template v-if="auth.isAuthenticated">
+        <p class="color-dim mr-xs">{{ auth.user?.email ?? '로그인됨' }}</p>
+        <router-link v-if="isAdminRoute" to="/" class="btn btn-outline link inline-block">사용자</router-link>
+        <router-link v-else to="/admin" class="btn btn-outline link inline-block">관리자</router-link>
+        <button type="button" class="btn btn-outline" @click="auth.signOut()">로그아웃</button>
+      </template>
+      <template v-else>
+        <button type="button" class="btn btn-primary" @click="emit('open-login')">로그인 / 회원가입</button>
+      </template>
+    </div>
+  </header>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import Icon from '@/components/Icon.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
+import { mdiClose, mdiChevronLeft } from '@mdi/js'
+
+const emit = defineEmits<{ 'open-login': [] }>()
+
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+const myNeighborhood = useMyNeighborhoodStore()
+
+const isAdminRoute = computed(() => /^\/admin/.test(route.path))
+
+function goBack() {
+  router.back()
+}
+
+async function handleLocationClick() {
+  myNeighborhood.requestShowMyLocation = true
+  try {
+    await myNeighborhood.fetchFromLocation()
+  } catch (e) {
+    console.error('위치 찾기 실패:', e)
+  }
+}
+</script>

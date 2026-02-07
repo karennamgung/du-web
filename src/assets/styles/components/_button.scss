@@ -1,0 +1,124 @@
+// =============================================================================
+// Button 컴포넌트 유틸리티 클래스
+// 토큰과 믹스인을 기반으로 한 전역 버튼 스타일
+// =============================================================================
+
+@use '../abstracts/mixins' as m;
+@use '../abstracts/primitives/effects' as e;
+@use '../abstracts/primitives/spacing' as s;
+@use '../abstracts/semantic/colors' as c;
+
+// ---- Button (토큰/믹스인 기반) ----
+// 기본 버튼
+.btn {
+  @include m.button-base;
+}
+
+// Variant: Primary / Gray / Outline (먼저 정의)
+.btn-primary {
+  @include m.button-primary;
+}
+.btn-gray {
+  @include m.button-gray;
+}
+.btn-outline {
+  @include m.button-outline;
+}
+
+.btn-ghost {
+  @include m.button-base;
+  border: none;
+  box-shadow: none;
+  background: none;
+  transition: color e.$transition-fast, background-color e.$transition-fast;
+  &:hover:not(:disabled) {
+    background-color: c.$color-bg-hover;
+  }
+}
+
+.btn-icon {
+  @include m.button-modifier-icon;
+}
+
+.btn-icon-only {
+  @include m.button-base;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  transition: color e.$transition-fast, opacity e.$transition-fast;
+  &:hover:not(:disabled) {
+    color: c.$color-text-dim;
+  }
+}
+
+.btn-small {
+  @include m.button-modifier-small;
+  min-width: 0;
+  min-height: 0;
+}
+
+.btn-icon.btn-small {
+  padding: s.$space-xs; // 0.25rem when icon + small (override .btn-small)
+}
+
+.btn-rounded {
+  @include m.button-modifier-rounded;
+}
+
+// Disabled 상태
+.btn:disabled,
+.btn-primary:disabled,
+.btn-gray:disabled,
+.btn-outline:disabled,
+.btn-ghost:disabled,
+.btn-icon-only:disabled {
+  @include m.button-disabled;
+}
+
+// ---- Chip (필터/태그용, 버튼 스타일 계열) ----
+.chip {
+  @include m.chip-base;
+  @include m.chip-hover;
+}
+.chip-active {
+  @include m.chip-active;
+}
+
+.chip-small {
+  @include m.chip-base;
+  @include m.chip-hover;
+  padding: 0.125rem 0.5rem; // 2px 8px
+  font-size: 0.75rem; // 12px
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  
+  &.chip-active {
+    @include m.chip-active;
+  }
+}
+
+// ---- Tag (표시용 라벨: 과목/연령 등) ----
+.tag {
+  @include m.tag-base;
+}
+.tag-small {
+  @include m.tag-small;
+}
+.tag-primary {
+  background-color: c.$color-primary-dimmer;
+  color: c.$color-primary;
+}
+.tag-secondary {
+  background-color: c.$color-secondary-dimmer;
+  color: c.$color-secondary;
+}

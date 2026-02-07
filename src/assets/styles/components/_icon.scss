@@ -1,0 +1,58 @@
+// =============================================================================
+// Icon 유틸리티 (font-size × line-height-relaxed 기준 아이콘 크기)
+// HTML/SVG에서 class="icon-base", "icon-lg" 등으로 사용
+// =============================================================================
+
+@use '../abstracts/primitives/typography' as t;
+
+$icon-lh: t.$line-height-relaxed;
+
+// ---- Icon size (font-size × line-height) ----
+// .icon-base를 먼저 정의해, icon-sm 등 오버라이드 클래스가 나중에 적용되도록 함
+.icon-base {
+  width: t.$font-size-base * $icon-lh;
+  height: t.$font-size-base * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-2xs {
+  width: t.$font-size-2xs * $icon-lh;
+  height: t.$font-size-2xs * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-xs {
+  width: t.$font-size-xs * $icon-lh;
+  height: t.$font-size-xs * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-sm {
+  width: t.$font-size-sm * $icon-lh;
+  height: t.$font-size-sm * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-md {
+  width: t.$font-size-md * $icon-lh;
+  height: t.$font-size-md * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-lg {
+  width: t.$font-size-lg * $icon-lh;
+  height: t.$font-size-lg * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-xl {
+  width: t.$font-size-xl * $icon-lh;
+  height: t.$font-size-xl * $icon-lh;
+  flex-shrink: 0;
+}
+
+.icon-2xl {
+  width: t.$font-size-2xl * $icon-lh;
+  height: t.$font-size-2xl * $icon-lh;
+  flex-shrink: 0;
+}
