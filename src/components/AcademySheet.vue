@@ -53,7 +53,7 @@
                 </p>
               </li>
               <li class="sheet-list-item">
-                <p class="sheet-list-label color-dim">대상 나이</p>
+                <p class="sheet-list-label color-dim">대상 연령</p>
                 <p class="sheet-list-value-tags">
                   <template v-if="displayedAgeGroups.length">
                     <TagChip v-for="a in displayedAgeGroups" :key="a" :label="a" type="age" />
