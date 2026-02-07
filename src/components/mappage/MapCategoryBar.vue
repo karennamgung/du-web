@@ -1,7 +1,7 @@
 <template>
   <div v-if="ageGroupOptions.length || subjectOptions.length" class="map-category-bar">
     <div v-if="ageGroupOptions.length" class="map-category-row">
-      <p class="map-category-label type-size-sm type-weight-semibold color-dim">대상 연령</p>
+      <p class="map-category-label type-size-sm type-weight-semibold color-dim">대상 나이</p>
       <div class="map-category-chips">
         <button
           v-for="opt in ageGroupOptions"

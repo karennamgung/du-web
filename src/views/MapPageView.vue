@@ -1284,6 +1284,14 @@ onMounted(async () => {
     loading.value = false
     await nextTick()
     await nextTick() // 컴포넌트 마운트를 위한 추가 대기
+    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이 재계산 (초기 로딩 시 지도가 엇나가는 현상 방지)
+    if (isMobile.value) {
+      requestAnimationFrame(() => {
+        bottomSheetHeight.value = getDefaultSheetHeightPx()
+        const maxPx = getMaxSheetHeightPx()
+        if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
+      })
+    }
     // mapContainerRef가 준비될 때까지 최대 20번 시도 (약 1초)
     let retries = 0
     while (!mapContainerComponentRef.value?.mapContainerRef && retries < 20) {
