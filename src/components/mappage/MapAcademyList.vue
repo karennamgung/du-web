@@ -331,9 +331,13 @@ defineExpose({
   margin: 0;
   padding: v.$space-md;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: v.$space-xl;
+  // 모바일: 위/아래 당겨도 목록만 스크롤, 바디/시트로 전달되지 않게 함 (잘못 내릴 때 목록이 조금 내려가는 현상 방지)
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .map-academy-list-empty {
