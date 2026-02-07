@@ -216,13 +216,13 @@ defineExpose({
   background: v.$color-bg-base;
   overflow: hidden;
   
-  // 모바일: 지도 위에 오버레이되는 바텀 시트
+  // 모바일: 지도 위에 오버레이되는 바텀 시트 (지도가 목록 위로 올라오지 않도록 z-card)
   @media (max-width: 767px) {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: v.$z-canvas;
+    z-index: v.$z-card;
     border-top-left-radius: v.$radius-xl;
     border-top-right-radius: v.$radius-xl;
     box-shadow: 0 -4px 16px rgba(17, 17, 17, 0.15);

@@ -82,7 +82,7 @@ defineExpose({
   width: 100%;
   min-height: 12.5rem;
   
-  // 모바일: 지도가 바텀 시트 위쪽만 차지, 학원 목록 아래로 (지도·네이버 저작권 등 z-index 낮춤)
+  // 모바일: 지도는 바텀 시트 뒤에만 보이도록(z-base), 컨트롤은 맨 위(z-floating)
   @media (max-width: 767px) {
     &.map-container-wrapper-mobile {
       position: absolute;
@@ -91,7 +91,7 @@ defineExpose({
       right: 0;
       flex: none;
       min-height: 0;
-      z-index: v.$z-canvas;
+      z-index: v.$z-base;
     }
   }
   
@@ -118,6 +118,11 @@ defineExpose({
   align-items: flex-end;
   gap: v.$space-sm;
   pointer-events: none; // 컨테이너는 클릭 통과, 버튼만 클릭 가능
+  
+  // 모바일: 학원 목록 바텀 시트 위에 버튼이 보이도록
+  @media (max-width: 767px) {
+    z-index: v.$z-floating;
+  }
   
   button {
     pointer-events: auto; // 버튼만 클릭 가능
