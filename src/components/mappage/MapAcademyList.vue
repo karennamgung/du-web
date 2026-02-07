@@ -225,11 +225,9 @@ defineExpose({
     z-index: v.$z-card;
     border-top-left-radius: v.$radius-xl;
     border-top-right-radius: v.$radius-xl;
-    box-shadow: 0 -4px 16px rgba(17, 17, 17, 0.15);
     transition: height v.$transition-base;
     overflow: hidden;
     
-    // 최소 높이일 때 리스트 내용 숨김 (드래그 핸들만 보임)
     &.map-academy-list-minimized {
       .map-academy-list-header,
       .map-academy-cards {
@@ -244,14 +242,14 @@ defineExpose({
     }
   }
   
-  // 태블릿: 세로 분할 (50:50)
   @media (min-width: 768px) and (max-width: 1023px) {
-    flex: 0 0 50%;
+    flex: 0 0 66.666%;
+    min-width: 0;
   }
   
-  // 데스크톱: 가로 분할 (리스트 40%, 지도 60%)
   @media (min-width: 1024px) {
-    flex: 0 0 40%;
+    flex: 0 0 60%;
+    min-width: 0;
   }
 }
 
@@ -297,7 +295,10 @@ defineExpose({
   flex-wrap: wrap;
   gap: v.$space-sm;
   padding: v.$space-md v.$space-lg;
-  border-bottom: 1px solid v.$color-border-dim;
+  
+  @media (min-width: 768px) {
+    padding-left: 2rem;
+  }
   
   &.map-academy-list-header-clickable {
     cursor: pointer;
@@ -328,16 +329,39 @@ defineExpose({
 
 .map-academy-cards {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
   margin: 0;
-  padding: v.$space-md;
+  padding: 1rem;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: v.$space-xl;
-  // 모바일: 위/아래 당겨도 목록만 스크롤, 바디/시트로 전달되지 않게 함 (잘못 내릴 때 목록이 조금 내려가는 현상 방지)
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+  
+  /* 태블릿: 2열 그리드, 좌측 2rem */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: min-content;
+    gap: v.$space-lg;
+    align-content: start;
+    align-items: start;
+    padding-left: 2rem;
+  }
+  
+  /* 데스크톱: 3열 그리드, 좌측 2rem */
+  @media (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: min-content;
+    gap: v.$space-lg;
+    align-content: start;
+    align-items: start;
+    padding-left: 2rem;
+  }
 }
 
 .map-academy-list-empty {

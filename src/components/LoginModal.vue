@@ -7,7 +7,7 @@
         @click="close"
       >
         <div
-          class="login-panel w-full max-w-modal bg-base rounded-xl shadow-lg overflow-hidden"
+          class="login-panel w-full max-w-modal bg-base rounded-xl overflow-hidden"
           role="dialog"
           aria-modal="true"
           @click.stop

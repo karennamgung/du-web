@@ -130,12 +130,18 @@ const displayedAgeGroups = computed(() => {
   flex-direction: row;
   align-items: stretch;
   gap: v.$space-lg;
+  min-width: 0;
   border-radius: v.$radius-lg;
   background: v.$color-bg-base;
   cursor: pointer;
   text-align: left;
   font: inherit;
   outline: none;
+
+  @media (min-width: 768px) {
+    flex-direction: column;
+    gap: 0;
+  }
 
   &:focus {
     outline: none;
@@ -152,6 +158,10 @@ const displayedAgeGroups = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: stretch;
+
+  @media (min-width: 768px) {
+    padding: v.$space-md;
+  }
 }
 
 .map-academy-card-head {
@@ -172,6 +182,13 @@ const displayedAgeGroups = computed(() => {
   height: 9rem;
   overflow: hidden;
   border-radius: v.$radius-lg;
+
+  @media (min-width: 768px) {
+    width: 100%;
+    height: 0;
+    padding-bottom: 100%; /* 정사각형 1:1 */
+    border-radius: v.$radius-lg;
+  }
 }
 
 .map-academy-card-thumb-actions {
@@ -240,14 +257,6 @@ const displayedAgeGroups = computed(() => {
     align-items: center;
     gap: v.$space-2xs;
   }
-}
-
-.map-academy-card-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: v.$space-xs;
-  margin-bottom: v.$space-md;
 }
 
 .map-academy-card-meta-divider {

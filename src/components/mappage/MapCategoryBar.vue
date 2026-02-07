@@ -101,14 +101,18 @@ const subjectOptions = computed(() => {
   padding: v.$space-md v.$space-lg;
   background: v.$color-bg-base;
   border-bottom: 1px solid v.$color-border-dim;
-  box-shadow: v.$shadow-sm;
+  
+  @media (min-width: 768px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 .map-category-row {
   display: flex;
   align-items: center;
   gap: v.$space-md;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .map-category-label {
@@ -120,6 +124,14 @@ const subjectOptions = computed(() => {
   display: flex;
   align-items: center;
   gap: v.$space-xs;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+
+  .chip {
+    flex-shrink: 0;
+  }
 }
 </style>

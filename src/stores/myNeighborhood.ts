@@ -16,7 +16,6 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
   /** 내 동네 경계(bbox). 이 범위 안에 있는 학원만 리스트에 표시 (도로명/동 이름 무관) */
   const boundary = ref<NeighborhoodBoundary | null>(null)
   const loading = ref(false)
-  const error = ref<string | null>(null)
   /** 지도에 내 위치 표시 요청 (위치 찾기 클릭 시 true → MapPageView에서 showMyLocation 호출 후 false) */
   const requestShowMyLocation = ref(false)
   /** 마지막으로 확인한 내 위치 (지도 복귀 시 마커 복원용) */
@@ -153,12 +152,8 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
   }
 
   async function fetchFromLocation(): Promise<void> {
-    if (!navigator.geolocation) {
-      error.value = '이 브라우저에서는 위치를 사용할 수 없어요.'
-      return
-    }
+    if (!navigator.geolocation) return
     loading.value = true
-    error.value = null
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -189,19 +184,7 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
         region.value = null
         boundary.value = null
       }
-    } catch (e) {
-      const err = e as { code?: number; message?: string }
-      if (typeof err.code === 'number') {
-        if (err.code === 1) error.value = '위치 권한이 거부되었어요. 브라우저 설정에서 위치 권한을 허용해 주세요.'
-        else if (err.code === 2) error.value = '위치를 확인할 수 없어요. 네트워크나 GPS를 확인해 주세요.'
-        else if (err.code === 3) error.value = '위치 조회 시간이 초과되었어요. 다시 시도해 주세요.'
-        else error.value = err.message || '위치를 가져올 수 없어요.'
-      } else if (e instanceof Error) {
-        error.value =
-          e.message === '주소 조회 실패' ? '주소 조회에 실패했어요. 잠시 후 다시 시도해 주세요.' : e.message
-      } else {
-        error.value = '위치를 가져올 수 없어요. 브라우저 위치 권한을 허용했는지 확인해 주세요.'
-      }
+    } catch {
       name.value = null
       region.value = null
       boundary.value = null
@@ -215,7 +198,6 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     name.value = null
     region.value = null
     boundary.value = null
-    error.value = null
     lastLocation.value = null
     try {
       localStorage.removeItem('myNeighborhood')
@@ -271,7 +253,6 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     region,
     boundary,
     loading,
-    error,
     requestShowMyLocation,
     lastLocation,
     fetchFromLocation,

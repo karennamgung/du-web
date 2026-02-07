@@ -137,7 +137,6 @@ function selectSuggestion(academy: Academy) {
   background: v.$color-bg-base;
   border: 1px solid v.$color-border-dim;
   border-radius: v.$radius-md;
-  box-shadow: v.$shadow-lg;
   z-index: v.$z-canvas;
 }
 

@@ -8,7 +8,7 @@
     <div class="map-controls">
       <button
         type="button"
-        class="btn btn-gray btn-small btn-icon btn-rounded shadow-md"
+        class="btn btn-gray btn-small btn-icon btn-rounded"
         title="확대"
         :disabled="!hasMap"
         @click="$emit('zoomIn')"
@@ -17,7 +17,7 @@
       </button>
       <button
         type="button"
-        class="btn btn-gray btn-small btn-icon btn-rounded shadow-md"
+        class="btn btn-gray btn-small btn-icon btn-rounded"
         title="축소"
         :disabled="!hasMap"
         @click="$emit('zoomOut')"
@@ -27,7 +27,7 @@
       <button
         v-if="hasMyNeighborhood"
         type="button"
-        class="btn btn-gray btn-rounded btn-small shadow-md"
+        class="btn btn-gray btn-rounded btn-small"
         title="내 위치와 학원 밀집 지역으로 이동"
         :disabled="!hasMap"
         @click="$emit('resetToDefault')"
@@ -36,7 +36,7 @@
       </button>
       <button
         type="button"
-        class="btn btn-gray btn-rounded btn-small shadow-md"
+        class="btn btn-gray btn-rounded btn-small"
         title="현재 지도에 보이는 영역 안의 학원만 목록에 표시"
         :disabled="!hasMap"
         @click="$emit('searchVisibleBounds')"
@@ -95,16 +95,20 @@ defineExpose({
     }
   }
   
-  // 태블릿: 세로 분할 (50:50)
   @media (min-width: 768px) and (max-width: 1023px) {
-    flex: 0 0 50%;
-    border-right: 1px solid v.$color-border-dim;
+    flex: 0 0 33.333%; /* 태블릿: 목록 66.666% + 지도 33.333% = 100% */
+    min-width: 0;
+    box-sizing: border-box;
+    padding: v.$space-md;
+    padding-right: 2rem;
   }
   
-  // 데스크톱: 가로 분할 (지도 60%, 리스트 40%)
   @media (min-width: 1024px) {
-    flex: 0 0 60%;
-    border-right: 1px solid v.$color-border-dim;
+    flex: 0 0 40%; /* 데스크톱: 목록 60% + 지도 40% = 100% */
+    min-width: 0;
+    box-sizing: border-box;
+    padding: v.$space-lg;
+    padding-right: 2rem;
   }
 }
 
@@ -134,5 +138,11 @@ defineExpose({
   width: 100%;
   height: 100%;
   min-height: 12.5rem;
+  
+  @media (min-width: 768px) {
+    min-width: 0;
+    border-radius: v.$radius-xl;
+    overflow: hidden;
+  }
 }
 </style>

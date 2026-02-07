@@ -14,18 +14,6 @@
 
     <div v-if="!loading" class="map-content">
       <div class="map-content-inner">
-        <MapContainer
-          ref="mapContainerComponentRef"
-          :is-mobile="isMobile"
-          :bottom-sheet-height="bottomSheetHeight"
-          :has-map="mapReady"
-          :has-my-neighborhood="!!(myNeighborhood.name || myNeighborhood.lastLocation)"
-          @zoom-in="zoomIn"
-          @zoom-out="zoomOut"
-          @search-visible-bounds="searchVisibleBounds"
-          @reset-to-default="resetToDefault"
-        />
-
         <MapAcademyList
           ref="academyListComponentRef"
           :academies="sortedAcademyList"
@@ -55,12 +43,23 @@
           @academy-mouseleave="handleAcademyMouseleave"
           @close-single-card="selectedAcademy = null"
         />
+        <MapContainer
+          ref="mapContainerComponentRef"
+          :is-mobile="isMobile"
+          :bottom-sheet-height="bottomSheetHeight"
+          :has-map="mapReady"
+          :has-my-neighborhood="!!(myNeighborhood.name || myNeighborhood.lastLocation)"
+          @zoom-in="zoomIn"
+          @zoom-out="zoomOut"
+          @search-visible-bounds="searchVisibleBounds"
+          @reset-to-default="resetToDefault"
+        />
       </div>
       <!-- 모바일: 학원 목록이 전체 확장됐을 때 화면 하단 중앙에 노출되는 '지도 보기' 버튼 -->
       <button
         v-if="isMobile && isBottomSheetMaximized"
         type="button"
-        class="btn btn-primary btn-small btn-rounded shadow-md map-show-map-button"
+        class="btn btn-primary btn-small btn-rounded map-show-map-button"
         @click="toggleBottomSheet()"
       >
         <Icon :path="mdiMapOutline" class="icon-xs" />
@@ -198,7 +197,9 @@ function checkMobile() {
   
   if (isMobile.value) {
     if (bottomSheetHeight.value === 0) {
-      bottomSheetHeight.value = getDefaultSheetHeightPx() // 디폴트: 필터 아래 공간의 50% (지도=목록)
+      const defaultPx = getDefaultSheetHeightPx()
+      // 모바일: 카드가 보이도록 최소 260px 보장 (MIN_HEIGHT만 되면 카드 영역이 숨겨짐)
+      bottomSheetHeight.value = Math.max(defaultPx, 260)
     }
     const maxPx = getMaxSheetHeightPx()
     if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
@@ -401,6 +402,7 @@ function resetToDefault() {
           position: new maps.LatLng(lat, lng),
           map,
           icon: { content: markerHtml, size: new Size(MARKER_ICON_SIZE, MARKER_ICON_SIZE), anchor: new Point(MARKER_ICON_SIZE / 2, MARKER_ICON_SIZE / 2) },
+          zIndex: 300, // 학원 마커(호버 200)보다 위에 표시
         })
         fitMapToMyLocationAndCluster(lat, lng)
       } catch {
@@ -677,6 +679,7 @@ function showMyLocationAt(lat: number, lng: number) {
         size: new Size(MARKER_ICON_SIZE, MARKER_ICON_SIZE),
         anchor: new Point(MARKER_ICON_SIZE / 2, MARKER_ICON_SIZE / 2),
       },
+      zIndex: 300, // 학원 마커(호버 200)보다 위에 표시
     })
     fitMapToMyLocationAndCluster(lat, lng)
   } catch {
@@ -1284,10 +1287,11 @@ onMounted(async () => {
     loading.value = false
     await nextTick()
     await nextTick() // 컴포넌트 마운트를 위한 추가 대기
-    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이 재계산 (초기 로딩 시 지도가 엇나가는 현상 방지)
+    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이 재계산 (초기 로딩 시 지도·카드 보이도록)
     if (isMobile.value) {
       requestAnimationFrame(() => {
-        bottomSheetHeight.value = getDefaultSheetHeightPx()
+        const defaultPx = getDefaultSheetHeightPx()
+        bottomSheetHeight.value = Math.max(defaultPx, 260)
         const maxPx = getMaxSheetHeightPx()
         if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
       })
@@ -1372,7 +1376,6 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow: hidden;
 }
-
 
 .map-content {
   flex: 1 1 0%;

@@ -1,5 +1,8 @@
 <template>
-  <header class="flex items-center justify-between flex-wrap gap-md p-md px-xl border-b bg-base">
+  <header
+    class="flex items-center justify-between flex-wrap gap-md p-md px-lg border-b bg-base"
+    :class="{ 'header-px-2rem': route.path === '/' }"
+  >
     <div class="flex items-center gap-lg flex-wrap">
       <div class="flex items-center gap-xs">
         <button
@@ -26,16 +29,6 @@
             <Icon class="icon-2xs color-dim" :path="mdiClose" />
           </button>
         </template>
-        <template v-else-if="myNeighborhood.error">
-          <p class="color-warning">{{ myNeighborhood.error }}</p>
-          <button
-            type="button"
-            class="btn btn-outline btn-small"
-            @click="myNeighborhood.fetchFromLocation()"
-          >
-            다시 시도
-          </button>
-        </template>
         <button
           v-else
           type="button"
@@ -45,7 +38,6 @@
           위치 찾기
         </button>
       </div>
-      <div id="app-header-search" class="flex-1 min-w-7 max-w-20"></div>
     </div>
     <div class="flex items-center gap-md">
       <template v-if="auth.isAuthenticated">
@@ -84,10 +76,16 @@ function goBack() {
 
 async function handleLocationClick() {
   myNeighborhood.requestShowMyLocation = true
-  try {
-    await myNeighborhood.fetchFromLocation()
-  } catch (e) {
-    console.error('위치 찾기 실패:', e)
-  }
+  await myNeighborhood.fetchFromLocation()
 }
 </script>
+
+<style lang="scss" scoped>
+/* 지도 페이지(/)일 때 태블릿·데스크톱에서 헤더 좌우 2rem */
+.header-px-2rem {
+  @media (min-width: 768px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+</style>

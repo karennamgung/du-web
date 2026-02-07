@@ -319,7 +319,6 @@ watch(
   max-height: 70vh;
   background: v.$color-bg-base;
   border-radius: v.$radius-xl v.$radius-xl 0 0;
-  box-shadow: v.$shadow-lg;
   overflow: hidden;
   display: flex;
   flex-direction: column;
