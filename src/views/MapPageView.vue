@@ -1,15 +1,19 @@
 <template>
   <div class="map-page">
     <p v-if="loading" class="map-loading">학원 목록 불러오는 중...</p>
-    <header v-else ref="categoryBarRef">
-      <MapSearch :academies="academies" :loading="loading" @select="handleSearchSelect" @clear-search="searchSelectedAcademyId = null" />
-      <MapCategoryBar
-        :academies="academies"
-        :selected-age-groups="selectedAgeGroups"
-        :selected-subjects="selectedSubjects"
-        @toggle-age-group="toggleAgeGroup"
-        @toggle-subject="toggleSubject"
-      />
+    <header v-else ref="categoryBarRef" class="map-page-header">
+      <div class="map-page-filter-section">
+        <MapCategoryBar
+          :academies="academies"
+          :loading="loading"
+          :selected-age-groups="selectedAgeGroups"
+          :selected-subjects="selectedSubjects"
+          @toggle-age-group="toggleAgeGroup"
+          @toggle-subject="toggleSubject"
+          @select="handleSearchSelect"
+          @clear-search="searchSelectedAcademyId = null"
+        />
+      </div>
     </header>
 
     <div v-if="!loading" class="map-content">
@@ -75,7 +79,6 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import LoginModal from '@/components/LoginModal.vue'
 import Icon from '@/components/Icon.vue'
-import MapSearch from '@/components/mappage/MapSearch.vue'
 import MapCategoryBar from '@/components/mappage/MapCategoryBar.vue'
 import MapContainer from '@/components/mappage/MapContainer.vue'
 import MapAcademyList from '@/components/mappage/MapAcademyList.vue'
@@ -85,14 +88,8 @@ import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
 import { supabase } from '@/lib/supabase'
 import type { Academy } from '@/types/academy'
-import { 
-  mdiMapMarker, 
-  mdiMapOutline,
-  mdiCircle, 
-  mdiSquare,
-  mdiHome,
-} from '@mdi/js'
-import { getSubjectIcon, AGE_GROUP_ORDER, isValidAgeGroup, isValidSubject } from '@/constants/subjectTypes'
+import { mdiMapMarker, mdiMapOutline, mdiCircle, mdiSquare } from '@mdi/js'
+import { getSubjectIconPath, MY_LOCATION_MARKER_ICON, AGE_GROUP_ORDER, getCanonicalSubject, isValidAgeGroup, isValidSubject } from '@/constants/subjectTypes'
 
 const SONGDO_CENTER = { lat: 37.3833, lng: 126.6567 }
 /** MDI 원 아이콘 마커: 원 중심이 좌표에 오도록 앵커 설정 */
@@ -127,7 +124,8 @@ const isDragging = ref(false)
 const didDrag = ref(false) // 드래그로 내렸을 때 헤더 클릭(토글) 방지
 const dragStartY = ref(0)
 const dragStartHeight = ref(0)
-const MIN_HEIGHT = 60 // 1단계: 지도 맨 밑에 핸들러만 보이기
+// 바텀 시트 최소 높이: 드래그 영역(map-bottom-sheet-drag-area)만 보이도록 (handle padding 12px×2 + bar 4px ≈ 28px)
+const MIN_HEIGHT = 28
 
 const categoryBarRef = ref<HTMLElement | null>(null)
 
@@ -295,9 +293,13 @@ const filteredAcademies = computed(() => {
     // 유효한 연령 그룹만 필터링에 사용
     const validAgeGroups = (a.age_group ?? []).filter(isValidAgeGroup)
     const matchAge = ageFilter.length === 0 || ageFilter.some((g) => isValidAgeGroup(g) && validAgeGroups.includes(g))
-    // 유효한 과목만 필터링에 사용
+    // 유효한 과목만 필터링에 사용 (통합 과목명 기준: 코딩=로봇, 음악=피아노, 미술=디자인, 스포츠=축구/농구/수영/체육)
     const validSubjects = (a.subjects ?? []).filter(isValidSubject)
-    const matchSub = subFilter.length === 0 || subFilter.some((s) => isValidSubject(s) && validSubjects.includes(s))
+    const matchSub =
+      subFilter.length === 0 ||
+      subFilter.some((selectedCanonical) =>
+        validSubjects.some((academySubject) => getCanonicalSubject(academySubject) === selectedCanonical)
+      )
     if (!matchAge || !matchSub) return false
     if (bounds) {
       const lat = a.lat ?? 0
@@ -819,17 +821,11 @@ function createCircleIconHtml(color: string = '#ff5a5f'): string {
   const bgEscaped = bgColor.replace(/"/g, '&quot;')
   const iconEscaped = iconColor.replace(/"/g, '&quot;')
   const borderEscaped = borderColor.replace(/"/g, '&quot;')
-  const iconSvg = `<svg viewBox="0 0 24 24" width="${MARKER_ICON_SIZE}" height="${MARKER_ICON_SIZE}" xmlns="http://www.w3.org/2000/svg"><path d="${mdiHome}" fill="${iconEscaped}"/></svg>`
+  const iconSvg = `<svg viewBox="0 0 24 24" width="${MARKER_ICON_SIZE}" height="${MARKER_ICON_SIZE}" xmlns="http://www.w3.org/2000/svg"><path d="${MY_LOCATION_MARKER_ICON}" fill="${iconEscaped}"/></svg>`
   return `<span style="display:flex;align-items:center;justify-content:center;padding:0.25rem;background-color:${bgEscaped};border-radius:50%;border:2px solid ${borderEscaped};">${iconSvg}</span>`
 }
 
-/** 대표 과목에 맞는 MDI 아이콘 경로 반환 (없으면 원 아이콘) */
-function getSubjectIconPath(subjects: string[]): string {
-  if (!subjects || subjects.length === 0) return getSubjectIcon(null)
-  return getSubjectIcon(subjects[0])
-}
-
-/** 마커 HTML: 과목별 MDI 아이콘 + 학원 이름 칩 (선택: 배경 primary+아이콘 white+테두리 white, 호버: 배경 dimmer+아이콘 dim+테두리 stronger, 일반: 배경 dimmer+아이콘 dim+테두리 dim) */
+/** 마커 HTML: 과목별 MDI 아이콘 + 학원 이름 칩 (선택: 배경 primary+아이콘 white+테두리 white, 호버: 배경 dimmer+아이콘 dim+테두리 stronger, 일반: 배경 dimmer+아이콘 dim+테두리 dim). 과목 아이콘은 subjectTypes.getSubjectIconPath 사용 */
 function createMarkerIconHtml(academyName: string, isSelected: boolean, subjects: string[] = [], isHovered: boolean = false): string {
   // 선택: primary 배경, 호버/일반: dimmer 배경
   const bgColor = typeof document !== 'undefined'
@@ -1377,6 +1373,29 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.map-page-header {
+  flex-shrink: 0;
+  padding: v.$space-md v.$space-lg;
+  background: v.$color-bg-base;
+  border-bottom: 1px solid v.$color-border-dim;
+
+  @media (min-width: 768px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.map-page-filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-md;
+
+  /* 필터 섹션 안에서는 MapCategoryBar 패딩 제거(헤더 패딩으로 통일) */
+  :deep(.map-category-bar) {
+    padding: 0;
+  }
+}
+
 .map-content {
   flex: 1 1 0%;
   min-height: 0;
@@ -1402,7 +1421,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  
+
   @media (min-width: 768px) {
     flex: 1;
     flex-direction: row;

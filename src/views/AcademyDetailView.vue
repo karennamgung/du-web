@@ -165,7 +165,7 @@ import LoginModal from '@/components/LoginModal.vue'
 import TagChip from '@/components/TagChip.vue'
 import Icon from '@/components/Icon.vue'
 import { EXPERIENCE_TAGS_NEGATIVE, EXPERIENCE_TAGS_POSITIVE } from '@/constants/experienceTags'
-import { isValidSubject, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
+import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
 import { useAcademyExperiences } from '@/composables/useAcademyExperiences'
 import { useFavorites } from '@/composables/useFavorites'
 import { useAuthStore } from '@/stores/auth'
@@ -177,18 +177,15 @@ const route = useRoute()
 
 const academy = ref<Academy | null>(null)
 
-/** 유효한 과목만 필터링하여 표시 */
-const displayedSubjects = computed(() => {
-  if (!academy.value?.subjects) return []
-  return academy.value.subjects
-    .filter(isValidSubject)
-    .sort()
-})
+/** 상세에 표시할 과목 태그 (DB 원본, null/undefined 제외) */
+const displayedSubjects = computed(() =>
+  (getDisplaySubjects(academy.value?.subjects ?? []) ?? []).filter((s): s is string => s != null && s !== '')
+)
 
 /** 유효한 연령 그룹만 필터링하고 표준 순서로 정렬하여 표시 */
 const displayedAgeGroups = computed(() => {
   if (!academy.value?.age_group) return []
-  const validGroups = academy.value.age_group.filter(isValidAgeGroup)
+  const validGroups = academy.value.age_group.filter((a): a is string => a != null && a !== '' && isValidAgeGroup(a))
   return validGroups.sort((a, b) => {
     const i = AGE_GROUP_ORDER.indexOf(a)
     const j = AGE_GROUP_ORDER.indexOf(b)
@@ -219,10 +216,10 @@ const positiveKeys = new Set(EXPERIENCE_TAGS_POSITIVE.map((t) => t.key))
 const negativeKeys = new Set(EXPERIENCE_TAGS_NEGATIVE.map((t) => t.key))
 
 const positiveExperienceTags = computed(() =>
-  experienceTagCounts.value.filter((t) => positiveKeys.has(t.tag_key))
+  experienceTagCounts.value.filter((t) => t != null && t.tag_key != null && positiveKeys.has(t.tag_key))
 )
 const negativeExperienceTags = computed(() =>
-  experienceTagCounts.value.filter((t) => negativeKeys.has(t.tag_key))
+  experienceTagCounts.value.filter((t) => t != null && t.tag_key != null && negativeKeys.has(t.tag_key))
 )
 const positiveTotalCount = computed(() =>
   positiveExperienceTags.value.reduce((sum, t) => sum + t.count, 0)

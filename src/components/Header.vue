@@ -88,4 +88,5 @@ async function handleLocationClick() {
     padding-right: 2rem;
   }
 }
+
 </style>

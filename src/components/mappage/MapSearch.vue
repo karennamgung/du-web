@@ -1,43 +1,38 @@
 <template>
-  <Teleport to="#app-header-search">
-    <div v-if="!loading" class="map-search-in-header">
-      <div ref="searchWrapRef" class="map-search-wrap">
-        <div class="map-search-row">
-          <label for="map-search" class="type-size-sm type-weight-semibold color-dim">검색</label>
-          <input
-            id="map-search"
-            v-model="searchQuery"
-            type="search"
-            class="map-search-input"
-            placeholder="학원명, 주소로 검색"
-            autocomplete="off"
-            @focus="showSearchDropdown = true"
-          />
+  <div v-if="!loading" class="map-search-wrap">
+    <div ref="searchWrapRef" class="map-search-inner">
+      <input
+        id="map-search"
+        v-model="searchQuery"
+        type="search"
+        class="map-search-input"
+        placeholder="학원명, 주소로 검색"
+        autocomplete="off"
+        @focus="showSearchDropdown = true"
+      />
+      <Transition name="dropdown">
+        <div v-if="showSearchDropdown && searchQuery.trim()" class="map-search-dropdown">
+          <template v-if="searchSuggestions.length">
+            <button
+              v-for="academy in searchSuggestions"
+              :key="academy.id"
+              type="button"
+              class="map-search-suggestion"
+              @click="selectSuggestion(academy)"
+            >
+              <p>{{ academy.name }}</p>
+              <p v-if="academy.address || academy.address_road" class="map-search-suggestion-address color-dim">
+                <template v-if="academy.address">{{ academy.address }}</template>
+                <template v-if="academy.address && academy.address_road"><br /></template>
+                <template v-if="academy.address_road">{{ academy.address_road }}</template>
+              </p>
+            </button>
+          </template>
+          <p v-else class="map-search-empty color-dim">검색 결과가 없습니다.</p>
         </div>
-        <Transition name="dropdown">
-          <div v-if="showSearchDropdown && searchQuery.trim()" class="map-search-dropdown">
-            <template v-if="searchSuggestions.length">
-              <button
-                v-for="academy in searchSuggestions"
-                :key="academy.id"
-                type="button"
-                class="map-search-suggestion"
-                @click="selectSuggestion(academy)"
-              >
-                <p>{{ academy.name }}</p>
-                <p v-if="academy.address || academy.address_road" class="map-search-suggestion-address color-dim">
-                  <template v-if="academy.address">{{ academy.address }}</template>
-                  <template v-if="academy.address && academy.address_road"><br /></template>
-                  <template v-if="academy.address_road">{{ academy.address_road }}</template>
-                </p>
-              </button>
-            </template>
-            <p v-else class="map-search-empty color-dim">검색 결과가 없습니다.</p>
-          </div>
-        </Transition>
-      </div>
+      </Transition>
     </div>
-  </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -103,25 +98,18 @@ function selectSuggestion(academy: Academy) {
 <style lang="scss" scoped>
 @use '@/assets/styles/index' as v;
 
-.map-search-in-header {
-  display: flex;
-  align-items: center;
-  width: 100%;
+.map-search-wrap {
+  position: relative;
+  flex: 1;
   min-width: 0;
 }
 
-.map-search-wrap {
+.map-search-inner {
   position: relative;
 }
 
-.map-search-row {
-  display: flex;
-  align-items: center;
-  gap: v.$space-md;
-}
-
 .map-search-input {
-  flex: 1;
+  width: 100%;
   min-width: 0;
   @include v.input-base;
 }
@@ -129,7 +117,7 @@ function selectSuggestion(academy: Academy) {
 .map-search-dropdown {
   position: absolute;
   top: 100%;
-  left: 5.125rem;
+  left: 0;
   right: 0;
   margin-top: v.$space-xs;
   max-height: 17.5rem;

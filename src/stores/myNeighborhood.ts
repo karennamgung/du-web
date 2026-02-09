@@ -132,6 +132,7 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     ])
     let best: { bbox: string[]; score: number } | null = null
     for (const item of data) {
+      if (!item) continue
       const bbox = item.boundingbox
       if (!Array.isArray(bbox) || bbox.length < 4) continue
       const area = bboxToArea(bbox)

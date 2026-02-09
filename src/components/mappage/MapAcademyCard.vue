@@ -78,7 +78,7 @@ import Icon from '@/components/Icon.vue'
 import TagChip from '@/components/TagChip.vue'
 import { mdiHeart, mdiHeartOutline, mdiArrowLeftRight, mdiCar, mdiWalk } from '@mdi/js'
 import type { Academy } from '@/types/academy'
-import { isValidSubject, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
+import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
 
 const props = defineProps<{
   academy: Academy
@@ -99,12 +99,8 @@ defineEmits<{
   mouseleave: []
 }>()
 
-/** 유효한 과목만 필터링하여 표시 */
-const displayedSubjects = computed(() => {
-  return (props.academy.subjects ?? [])
-    .filter(isValidSubject)
-    .sort()
-})
+/** 카드에 표시할 과목 태그 (subjectTypes 통합명·중복 제거·순서) */
+const displayedSubjects = computed(() => getDisplaySubjects(props.academy.subjects))
 
 /** 유효한 연령 그룹만 필터링하고 표준 순서로 정렬하여 표시 */
 const displayedAgeGroups = computed(() => {

@@ -2,10 +2,10 @@
   <div 
     class="map-container-wrapper"
     :class="{ 'map-container-wrapper-mobile': isMobile }"
-    :style="isMobile ? { bottom: `${bottomSheetHeight}px` } : {}"
+    :style="isMobile ? { bottom: `${Math.max(0, bottomSheetHeight - 16)}px` } : {}"
   >
-    <div ref="mapContainerRef" class="map-container" />
-    <div class="map-controls">
+    <div ref="mapContainerRef" class="map-container">
+      <div class="map-controls">
       <button
         type="button"
         class="btn btn-gray btn-small btn-icon btn-rounded"
@@ -43,6 +43,7 @@
       >
         현재 보이는 지역 재검색
       </button>
+    </div>
     </div>
   </div>
 </template>
@@ -123,9 +124,10 @@ defineExpose({
   gap: v.$space-sm;
   pointer-events: none; // 컨테이너는 클릭 통과, 버튼만 클릭 가능
   
-  // 모바일: 학원 목록 바텀 시트 위에 버튼이 보이도록
+  // 모바일: 학원 목록 바텀 시트 위에 버튼이 보이도록, 1rem 위로 올림
   @media (max-width: 767px) {
     z-index: v.$z-floating;
+    bottom: v.$space-2xl;
   }
   
   button {

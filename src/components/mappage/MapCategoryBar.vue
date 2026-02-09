@@ -1,5 +1,14 @@
 <template>
-  <div v-if="ageGroupOptions.length || subjectOptions.length" class="map-category-bar">
+  <div class="map-category-bar">
+    <div class="map-category-row">
+      <label for="map-search" class="map-category-label type-size-sm type-weight-semibold color-dim">검색</label>
+      <MapSearch
+        :academies="academies"
+        :loading="loading"
+        @select="$emit('select', $event)"
+        @clear-search="$emit('clearSearch')"
+      />
+    </div>
     <div v-if="ageGroupOptions.length" class="map-category-row">
       <p class="map-category-label type-size-sm type-weight-semibold color-dim">대상 나이</p>
       <div class="map-category-chips">
@@ -36,10 +45,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Academy } from '@/types/academy'
+import MapSearch from '@/components/mappage/MapSearch.vue'
 import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, isValidSubject } from '@/constants/subjectTypes'
 
 const props = defineProps<{
   academies: Academy[]
+  loading: boolean
   selectedAgeGroups: string[]
   selectedSubjects: string[]
 }>()
@@ -47,6 +58,8 @@ const props = defineProps<{
 defineEmits<{
   toggleAgeGroup: [opt: string]
   toggleSubject: [opt: string]
+  select: [academy: Academy]
+  clearSearch: []
 }>()
 
 
@@ -100,7 +113,6 @@ const subjectOptions = computed(() => {
   gap: v.$space-md;
   padding: v.$space-md v.$space-lg;
   background: v.$color-bg-base;
-  border-bottom: 1px solid v.$color-border-dim;
   
   @media (min-width: 768px) {
     padding-left: 2rem;

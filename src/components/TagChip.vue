@@ -3,7 +3,7 @@
     class="tag" 
     :class="[
       size === 'small' ? 'tag-small' : '',
-      type === 'subject' ? 'tag-primary' : 'tag-secondary'
+      (type ?? 'subject') === 'subject' ? 'tag-primary' : 'tag-secondary'
     ]"
   >
     {{ label }}
@@ -11,9 +11,12 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  label: string
-  type: 'subject' | 'age'
-  size?: 'base' | 'small'
-}>()
+withDefaults(
+  defineProps<{
+    label: string
+    type?: 'subject' | 'age'
+    size?: 'base' | 'small'
+  }>(),
+  { type: 'subject' }
+)
 </script>

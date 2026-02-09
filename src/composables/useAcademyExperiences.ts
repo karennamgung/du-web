@@ -34,6 +34,7 @@ export function useAcademyExperiences(academyId: Ref<string | null>) {
       const countByKey = new Map<string, number>()
       const myKeys = new Set<string>()
       for (const r of rows ?? []) {
+        if (!r?.tag_key) continue
         countByKey.set(r.tag_key, (countByKey.get(r.tag_key) ?? 0) + 1)
         if (r.user_id === auth.user?.id) myKeys.add(r.tag_key)
       }

@@ -215,8 +215,14 @@ defineExpose({
   flex-direction: column;
   background: v.$color-bg-base;
   overflow: hidden;
-  
-  // 모바일: 지도 위에 오버레이되는 바텀 시트 (지도가 목록 위로 올라오지 않도록 z-card)
+  box-sizing: border-box;
+  padding: 0 v.$space-lg;
+
+  @media (min-width: 768px) {
+    padding-left: 2rem;
+  }
+
+  // 모바일: 지도 위에 오버레이되는 바텀 시트 (떠 있는 느낌을 위한 그림자)
   @media (max-width: 767px) {
     position: absolute;
     bottom: 0;
@@ -225,9 +231,10 @@ defineExpose({
     z-index: v.$z-card;
     border-top-left-radius: v.$radius-xl;
     border-top-right-radius: v.$radius-xl;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
     transition: height v.$transition-base;
     overflow: hidden;
-    
+
     &.map-academy-list-minimized {
       .map-academy-list-header,
       .map-academy-cards {
@@ -246,7 +253,7 @@ defineExpose({
     flex: 0 0 66.666%;
     min-width: 0;
   }
-  
+
   @media (min-width: 1024px) {
     flex: 0 0 60%;
     min-width: 0;
@@ -260,7 +267,6 @@ defineExpose({
   top: 0;
   z-index: v.$z-canvas;
   background: v.$color-bg-base;
-  border-bottom: 1px solid v.$color-border-dim;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -276,8 +282,7 @@ defineExpose({
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: v.$space-sm;
-  min-height: 2rem;
+  padding: v.$space-md 0;
 }
 
 .map-bottom-sheet-handle-bar {
@@ -294,12 +299,8 @@ defineExpose({
   justify-content: space-between;
   flex-wrap: wrap;
   gap: v.$space-sm;
-  padding: v.$space-md v.$space-lg;
-  
-  @media (min-width: 768px) {
-    padding-left: 2rem;
-  }
-  
+  padding: v.$space-lg 0;
+
   &.map-academy-list-header-clickable {
     cursor: pointer;
     user-select: none;
@@ -332,7 +333,6 @@ defineExpose({
   min-height: 0;
   min-width: 0;
   margin: 0;
-  padding: 1rem;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -340,8 +340,8 @@ defineExpose({
   gap: v.$space-xl;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
-  
-  /* 태블릿: 2열 그리드, 좌측 2rem */
+
+  /* 태블릿: 2열 그리드 */
   @media (min-width: 768px) and (max-width: 1023px) {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -349,10 +349,9 @@ defineExpose({
     gap: v.$space-lg;
     align-content: start;
     align-items: start;
-    padding-left: 2rem;
   }
-  
-  /* 데스크톱: 3열 그리드, 좌측 2rem */
+
+  /* 데스크톱: 3열 그리드 */
   @media (min-width: 1024px) {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -360,7 +359,6 @@ defineExpose({
     gap: v.$space-lg;
     align-content: start;
     align-items: start;
-    padding-left: 2rem;
   }
 }
 

@@ -2,7 +2,7 @@
   <div id="app">
     <Header @open-login="showLoginModal = true" />
     <main :class="{ 'main--no-scroll': isMapPage }">
-      <router-view />
+      <router-view :key="route.fullPath" />
     </main>
     <LoginModal v-model="showLoginModal" :academy-id="null" />
   </div>
