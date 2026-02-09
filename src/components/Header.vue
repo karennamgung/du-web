@@ -42,12 +42,11 @@
     <div class="flex items-center gap-md">
       <button type="button" class="btn btn-ghost" @click="router.push('/admin')">학원 등록하기</button>
       <template v-if="auth.isAuthenticated">
-        <p class="color-dim mr-xs">{{ auth.user?.email ?? '로그인됨' }}</p>
         <router-link v-if="isAdminRoute" to="/" class="btn btn-outline link inline-block">사용자</router-link>
         <button type="button" class="btn btn-outline" @click="auth.signOut()">로그아웃</button>
       </template>
       <template v-else>
-        <button type="button" class="btn btn-primary" @click="emit('open-login')">로그인 / 회원가입</button>
+        <button type="button" class="btn btn-primary" @click="emit('open-login')">로그인</button>
       </template>
     </div>
   </header>
