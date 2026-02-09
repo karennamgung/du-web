@@ -16,7 +16,7 @@
             <h2 class="m-0">로그인</h2>
             <button
               type="button"
-              class="btn btn-ghost btn-icon btn-rounded"
+              class="btn btn-icon-only btn-rounded"
               aria-label="닫기"
               @click="close"
             >
