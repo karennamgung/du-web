@@ -15,6 +15,18 @@
         <Icon :path="mdiChevronLeft" />
       </button>
 
+        <!-- 학부모 또는 학생인 경우 이름 표시 -->
+        <template v-if="profile.profile && (profile.profile.user_type === 'parent' || profile.profile.user_type === 'student')">
+          <button
+            type="button"
+            class="name-btn"
+            @click="showProfileModal = true"
+          >
+            <h4>{{ profile.displayName }}</h4>
+          </button>
+        </template>
+
+        <!-- 우리 동네 표시 -->
         <template v-if="myNeighborhood.loading">
           <p class="type-size-sm color-dim">가져오는 중…</p>
         </template>
@@ -40,9 +52,8 @@
       </div>
     </div>
     <div class="flex items-center gap-md">
-      <button type="button" class="btn btn-ghost" @click="router.push('/admin')">학원 등록하기</button>
+      <button v-if="!isAdminRoute" type="button" class="btn btn-icon-only" @click="router.push('/admin')">학원관리자</button>
       <template v-if="auth.isAuthenticated">
-        <router-link v-if="isAdminRoute" to="/" class="btn btn-outline link inline-block">사용자</router-link>
         <button type="button" class="btn btn-outline" @click="auth.signOut()">로그아웃</button>
       </template>
       <template v-else>
@@ -50,14 +61,18 @@
       </template>
     </div>
   </header>
+
+  <ProfileInfoModal v-model="showProfileModal" />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
+import { useProfileStore } from '@/stores/profile'
+import ProfileInfoModal from '@/components/ProfileInfoModal.vue'
 import { mdiClose, mdiChevronLeft } from '@mdi/js'
 
 const emit = defineEmits<{ 'open-login': [] }>()
@@ -66,6 +81,8 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const myNeighborhood = useMyNeighborhoodStore()
+const profile = useProfileStore()
+const showProfileModal = ref(false)
 
 const isAdminRoute = computed(() => /^\/admin/.test(route.path))
 
@@ -80,6 +97,8 @@ async function handleLocationClick() {
 </script>
 
 <style lang="scss" scoped>
+@use '@/assets/styles/index' as v;
+
 /* 지도 페이지(/)일 때 태블릿·데스크톱에서 헤더 좌우 2rem */
 .header-px-2rem {
   @media (min-width: 768px) {
@@ -88,4 +107,22 @@ async function handleLocationClick() {
   }
 }
 
+.name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+
+  h4 {
+    margin: 0;
+    color: v.$color-primary;
+    transition: color v.$transition-fast;
+
+    &:hover {
+      color: v.$color-primary-strong;
+      text-decoration: underline;
+    }
+  }
+}
 </style>

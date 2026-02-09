@@ -58,6 +58,27 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['academy_experience_tags']['Row'], 'created_at'> & { created_at?: string }
         Update: Partial<Database['public']['Tables']['academy_experience_tags']['Insert']>
       }
+      profiles: {
+        Row: {
+          id: string
+          user_id: string
+          user_type: 'parent' | 'student' | 'academy'
+          nickname: string
+          profile_image_url: string | null
+          residence: string | null
+          children: Array<{
+            name: string
+            birth_year: number
+            education_institution: string | null
+            gender: 'male' | 'female' | null
+          }> | null
+          onboarding_completed: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'id' | 'created_at' | 'updated_at'> & { id?: string; created_at?: string; updated_at?: string }
+        Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

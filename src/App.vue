@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Header @open-login="showLoginModal = true" />
+    <Header v-if="!isOnboardingPage" @open-login="showLoginModal = true" />
     <main :class="{ 'main--no-scroll': isMapPage }">
       <router-view :key="route.fullPath" />
     </main>
@@ -15,18 +15,36 @@ import LoginModal from '@/components/LoginModal.vue'
 import Header from '@/components/Header.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
+import { useProfileStore } from '@/stores/profile'
 
 const auth = useAuthStore()
 const myNeighborhood = useMyNeighborhoodStore()
+const profile = useProfileStore()
 const showLoginModal = ref(false)
 const route = useRoute()
 
 /** 지도 페이지: main 영역 스크롤 비활성화(모바일에서 바깥 스크롤로 목록 위치 밀림 방지) */
 const isMapPage = computed(() => route.name === 'Map')
+const isOnboardingPage = computed(() => route.name === 'Onboarding')
 
-onMounted(() => {
-  auth.init()
+onMounted(async () => {
+  await auth.init()
   myNeighborhood.restoreFromStorage()
+  
+  // 인증된 사용자의 경우 프로필 로드
+  if (auth.isAuthenticated) {
+    await profile.loadProfile()
+  }
+  
+  // 인증 상태 변경 감지
+  auth.$subscribe(() => {
+    if (auth.isAuthenticated) {
+      profile.loadProfile()
+    } else {
+      profile.profile = null
+      profile.children = []
+    }
+  })
 })
 </script>
 

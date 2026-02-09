@@ -1,0 +1,341 @@
+<template>
+  <div class="onboarding-step">
+    <h1 class="step-title">프로필을 만들어보세요!</h1>
+    <p class="step-description">크리에이터를 비롯한 다른 사람들과 소통할 나만의 프로필이예요.</p>
+
+    <div class="profile-form">
+      <div class="input-group">
+        <label for="nickname">별명</label>
+        <input
+          id="nickname"
+          v-model="nickname"
+          type="text"
+          placeholder="별명을 입력해주세요"
+          class="input"
+          maxlength="20"
+          @input="validateNickname"
+        />
+        <p class="input-hint">한글1~10자, 영문 및 숫자 2~20자까지 입력할 수 있어요.</p>
+        <p v-if="nicknameError" class="input-error">{{ nicknameError }}</p>
+      </div>
+
+      <div class="avatar-section">
+        <label>프로필 이미지</label>
+        <div class="avatar-grid">
+          <button
+            v-for="(avatar, index) in defaultAvatars"
+            :key="index"
+            type="button"
+            class="avatar-option"
+            :class="{ selected: selectedAvatarIndex === index }"
+            @click="selectAvatar(index)"
+          >
+            <div class="avatar-circle" :style="{ backgroundColor: avatar.color }">
+              {{ avatar.letter }}
+            </div>
+            <span v-if="selectedAvatarIndex === index" class="avatar-check">✓</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="btn btn-outline w-full mt-md"
+          @click="handleImageUpload"
+        >
+          사진 직접 업로드
+        </button>
+        <input
+          ref="fileInput"
+          type="file"
+          accept="image/*"
+          class="hidden"
+          @change="handleFileChange"
+        />
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-primary w-full mt-xl"
+      :disabled="!canProceed"
+      @click="handleNext"
+    >
+      다음
+    </button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/auth'
+
+interface Props {
+  onboardingData: {
+    nickname: string
+    profileImageUrl: string | null
+  }
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  'update-data': [data: { nickname: string; profileImageUrl: string | null }]
+  next: []
+}>()
+
+const auth = useAuthStore()
+
+const nickname = ref(props.onboardingData.nickname || '')
+const nicknameError = ref('')
+const selectedAvatarIndex = ref<number | null>(props.onboardingData.profileImageUrl ? null : 0) // 기본 아바타 선택
+const profileImageUrl = ref<string | null>(props.onboardingData.profileImageUrl)
+const fileInput = ref<HTMLInputElement | null>(null)
+
+const defaultAvatars = [
+  { letter: 'K', color: '#8B5CF6' },
+  { letter: 'A', color: '#6B7280' },
+  { letter: 'B', color: '#10B981' },
+  { letter: 'C', color: '#F59E0B' },
+  { letter: 'D', color: '#EF4444' },
+  { letter: 'E', color: '#3B82F6' },
+  { letter: 'F', color: '#EC4899' },
+  { letter: 'G', color: '#14B8A6' },
+  { letter: 'H', color: '#F97316' },
+  { letter: 'I', color: '#6366F1' },
+  { letter: 'J', color: '#84CC16' },
+  { letter: 'L', color: '#A855F7' },
+]
+
+const canProceed = computed(() => {
+  const hasNickname = nickname.value.trim().length > 0
+  const noNicknameError = !nicknameError.value
+  const hasImage = profileImageUrl.value !== null || selectedAvatarIndex.value !== null
+  
+  const result = hasNickname && noNicknameError && hasImage
+  
+  console.log('[OnboardingStepProfile] canProceed 체크:', {
+    hasNickname,
+    noNicknameError,
+    hasImage,
+    result,
+  })
+  
+  return result
+})
+
+function validateNickname() {
+  const value = nickname.value.trim()
+  if (value.length === 0) {
+    nicknameError.value = ''
+    return
+  }
+
+  const koreanRegex = /^[가-힣]+$/
+  const englishNumberRegex = /^[a-zA-Z0-9]+$/
+
+  if (koreanRegex.test(value)) {
+    if (value.length < 1 || value.length > 10) {
+      nicknameError.value = '한글은 1~10자까지 입력할 수 있어요.'
+      return
+    }
+  } else if (englishNumberRegex.test(value)) {
+    if (value.length < 2 || value.length > 20) {
+      nicknameError.value = '영문 및 숫자는 2~20자까지 입력할 수 있어요.'
+      return
+    }
+  } else {
+    nicknameError.value = '한글 또는 영문 및 숫자만 입력할 수 있어요.'
+    return
+  }
+
+  nicknameError.value = ''
+}
+
+function selectAvatar(index: number) {
+  selectedAvatarIndex.value = index
+  profileImageUrl.value = null // 기본 아바타 선택 시 업로드 이미지 제거
+  // 기본 아바타는 나중에 저장 시 처리 (임시로 null 전달)
+  emit('update-data', { nickname: nickname.value, profileImageUrl: null })
+}
+
+function handleImageUpload() {
+  fileInput.value?.click()
+}
+
+async function handleFileChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file || !auth.user?.id) return
+
+  try {
+    // 파일 업로드
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${auth.user.id}-${Date.now()}.${fileExt}`
+    const filePath = `profiles/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file)
+
+    if (uploadError) throw uploadError
+
+    // 공개 URL 가져오기
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
+    profileImageUrl.value = data.publicUrl
+    selectedAvatarIndex.value = null // 업로드 이미지 선택 시 기본 아바타 선택 해제
+    emit('update-data', { nickname: nickname.value, profileImageUrl: profileImageUrl.value })
+  } catch (error) {
+    console.error('Image upload failed:', error)
+    alert('이미지 업로드에 실패했습니다. 다시 시도해주세요.')
+  }
+}
+
+function handleNext() {
+  console.log('[OnboardingStepProfile] 다음 버튼 클릭:', {
+    nickname: nickname.value,
+    hasProfileImage: !!profileImageUrl.value,
+    selectedAvatarIndex: selectedAvatarIndex.value,
+    canProceed: canProceed.value,
+  })
+  
+  if (canProceed.value) {
+    // 최종 데이터 업데이트
+    emit('update-data', { 
+      nickname: nickname.value, 
+      profileImageUrl: profileImageUrl.value 
+    })
+    // 다음 단계로 이동
+    emit('next')
+  } else {
+    console.warn('[OnboardingStepProfile] 다음 단계로 진행할 수 없음:', {
+      nickname: nickname.value,
+      nicknameError: nicknameError.value,
+      hasProfileImage: !!profileImageUrl.value,
+      selectedAvatarIndex: selectedAvatarIndex.value,
+    })
+  }
+}
+
+watch(nickname, () => {
+  validateNickname()
+  emit('update-data', { nickname: nickname.value, profileImageUrl: profileImageUrl.value })
+})
+
+watch(profileImageUrl, () => {
+  emit('update-data', { nickname: nickname.value, profileImageUrl: profileImageUrl.value })
+})
+</script>
+
+<style lang="scss" scoped>
+@use '@/assets/styles/index' as v;
+
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-lg;
+}
+
+.step-title {
+  @include v.text-heading-lg;
+  margin: 0;
+}
+
+.step-description {
+  @include v.text-body;
+  color: v.$color-text-dim;
+  margin: 0;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-xl;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-sm;
+
+  label {
+    @include v.text-heading-sm;
+  }
+
+  .input {
+    @include v.input-base;
+  }
+
+  .input-hint {
+    @include v.text-caption;
+    margin: 0;
+  }
+
+  .input-error {
+    @include v.text-caption;
+    color: v.$color-accent-warning;
+    margin: 0;
+  }
+}
+
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-md;
+
+  label {
+    @include v.text-heading-sm;
+  }
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: v.$space-md;
+}
+
+.avatar-option {
+  position: relative;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.avatar-circle {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: 2px solid transparent;
+  transition: all v.$transition-base;
+}
+
+.avatar-option.selected .avatar-circle {
+  border-color: v.$color-primary;
+  box-shadow: 0 0 0 2px v.$color-primary-dimmer;
+}
+
+.avatar-check {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: v.$color-primary;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none;
+}
+</style>
