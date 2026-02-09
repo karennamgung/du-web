@@ -20,7 +20,7 @@
               aria-label="닫기"
               @click="close"
             >
-              <Icon :path="mdiClose" />
+              <Icon :path="mdiClose" color="currentColor" />
             </button>
           </header>
           <div class="p-xl">

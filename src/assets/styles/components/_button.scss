@@ -30,6 +30,7 @@
   border: none;
   box-shadow: none;
   background: none;
+  color: c.$color-text-base;
   transition: color e.$transition-fast, background-color e.$transition-fast;
   &:hover:not(:disabled) {
     background-color: c.$color-bg-hover;

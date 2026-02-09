@@ -31,11 +31,12 @@
           v-for="opt in subjectOptions"
           :key="'sub-' + opt"
           type="button"
-          class="chip"
+          class="chip chip-with-icon"
           :class="{ 'chip-active': selectedSubjects.includes(opt) }"
           @click="$emit('toggleSubject', opt)"
         >
-          {{ opt }}
+          <Icon class="map-category-chip-icon" :path="getSubjectIcon(opt)" color="currentColor" />
+          <span>{{ opt }}</span>
         </button>
       </div>
     </div>
@@ -46,7 +47,8 @@
 import { computed } from 'vue'
 import type { Academy } from '@/types/academy'
 import MapSearch from '@/components/mappage/MapSearch.vue'
-import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, type Subject } from '@/constants/subjectTypes'
+import Icon from '@/components/Icon.vue'
+import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, getSubjectIcon, type Subject } from '@/constants/subjectTypes'
 
 const props = defineProps<{
   academies: Academy[]
@@ -142,6 +144,21 @@ const subjectOptions = computed(() => {
 
   .chip {
     flex-shrink: 0;
+  }
+
+  .chip-with-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: v.$space-2xs;
+    /* 모바일에서 버튼 기본 색상(파란색)이 적용되지 않도록 */
+    color: inherit;
+  }
+
+  .map-category-chip-icon {
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    opacity: 0.9;
   }
 }
 </style>
