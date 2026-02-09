@@ -1,12 +1,12 @@
 <template>
   <header
     class="flex items-center justify-between flex-wrap gap-md p-md px-lg border-b bg-base"
-    :class="{ 'header-px-2rem': route.path === '/' }"
+    :class="{ 'header-px-2rem': route.path === '/' || route.path.startsWith('/admin') }"
   >
     <div class="flex items-center gap-lg flex-wrap">
       <div class="flex items-center gap-xs">
         <button
-        v-if="route.path !== '/'"
+        v-if="route.path !== '/' && !route.path.startsWith('/admin')"
         type="button"
         class="btn btn-icon-only btn-rounded mr-sm"
         aria-label="뒤로가기"
@@ -40,10 +40,10 @@
       </div>
     </div>
     <div class="flex items-center gap-md">
+      <button type="button" class="btn btn-ghost" @click="router.push('/admin')">학원 등록하기</button>
       <template v-if="auth.isAuthenticated">
         <p class="color-dim mr-xs">{{ auth.user?.email ?? '로그인됨' }}</p>
         <router-link v-if="isAdminRoute" to="/" class="btn btn-outline link inline-block">사용자</router-link>
-        <router-link v-else to="/admin" class="btn btn-outline link inline-block">관리자</router-link>
         <button type="button" class="btn btn-outline" @click="auth.signOut()">로그아웃</button>
       </template>
       <template v-else>

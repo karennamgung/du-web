@@ -141,7 +141,14 @@ async function signInWithGoogle() {
   loading.value = true
   try {
     if (props.academyId) sessionStorage.setItem('openComposerAfterAuth', props.academyId)
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+    // 현재 URL을 redirectTo로 설정하여 배포 환경에서도 올바른 도메인으로 리디렉션
+    const redirectTo = `${window.location.origin}${window.location.pathname}`
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+      },
+    })
     if (error) throw error
     close()
   } catch (e) {

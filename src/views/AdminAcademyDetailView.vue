@@ -5,7 +5,7 @@
     <nav class="flex items-center justify-center gap-xs mt-md">
       <router-link to="/" class="link color-primary">사용자</router-link>
       <span class="color-dimmer">|</span>
-      <router-link to="/admin" class="link color-primary">관리자</router-link>
+      <router-link to="/admin" class="link color-primary">학원 페이지</router-link>
     </nav>
   </div>
 </template>

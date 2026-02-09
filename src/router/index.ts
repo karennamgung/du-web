@@ -18,7 +18,7 @@ const routes: RouteRecordRaw[] = [
     path: '/admin',
     name: 'Admin',
     component: () => import('@/views/AdminView.vue'),
-    meta: { title: '관리자' },
+    meta: { title: '학원 페이지' },
   },
   {
     path: '/admin/academies/:id',
