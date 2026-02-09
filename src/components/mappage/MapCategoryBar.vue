@@ -150,8 +150,6 @@ const subjectOptions = computed(() => {
     display: inline-flex;
     align-items: center;
     gap: v.$space-2xs;
-    /* 모바일에서 버튼 기본 색상(파란색)이 적용되지 않도록 */
-    color: inherit;
   }
 
   .map-category-chip-icon {
