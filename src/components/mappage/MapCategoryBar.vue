@@ -46,7 +46,7 @@
 import { computed } from 'vue'
 import type { Academy } from '@/types/academy'
 import MapSearch from '@/components/mappage/MapSearch.vue'
-import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, isValidSubject } from '@/constants/subjectTypes'
+import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, type Subject } from '@/constants/subjectTypes'
 
 const props = defineProps<{
   academies: Academy[]
@@ -73,8 +73,8 @@ const ageGroupOptions = computed(() => {
     })
   })
   return Array.from(set).sort((a, b) => {
-    const i = AGE_GROUP_ORDER.indexOf(a)
-    const j = AGE_GROUP_ORDER.indexOf(b)
+    const i = AGE_GROUP_ORDER.indexOf(a as typeof AGE_GROUP_ORDER[number])
+    const j = AGE_GROUP_ORDER.indexOf(b as typeof AGE_GROUP_ORDER[number])
     if (i !== -1 && j !== -1) return i - j
     if (i !== -1) return -1
     if (j !== -1) return 1
@@ -83,16 +83,14 @@ const ageGroupOptions = computed(() => {
 })
 
 const subjectOptions = computed(() => {
-  const set = new Set<string>()
+  // 필터·지도용: DB 원본을 표준 태그로 변환하여 사용
+  const canonicalSet = new Set<Subject>()
   props.academies.forEach((a) => {
-    (a.subjects ?? []).forEach((s) => {
-      if (isValidSubject(s)) {
-        set.add(s)
-      }
-    })
+    const canonicalSubjects = getCanonicalSubjects(a.subjects ?? [])
+    canonicalSubjects.forEach((canonical) => canonicalSet.add(canonical))
   })
   // SUBJECT_LIST 순서로 정렬 (표준 순서 유지)
-  return Array.from(set).sort((a, b) => {
+  return Array.from(canonicalSet).sort((a, b) => {
     const i = SUBJECT_LIST.indexOf(a)
     const j = SUBJECT_LIST.indexOf(b)
     if (i !== -1 && j !== -1) return i - j
