@@ -62,7 +62,7 @@
       <button
         v-if="isMobile && isBottomSheetMaximized"
         type="button"
-        class="btn btn-primary btn-small btn-rounded map-show-map-button"
+        class="btn btn-strongest btn-small btn-rounded map-show-map-button"
         @click="toggleBottomSheet()"
       >
         <Icon :path="mdiMapOutline" class="icon-xs" />
@@ -1402,7 +1402,7 @@ onBeforeUnmount(() => {
 .map-show-map-button {
   position: fixed;
   left: 50%;
-  bottom: v.$space-lg;
+  bottom: v.$space-md;
   transform: translateX(-50%);
   z-index: v.$z-card;
 }
