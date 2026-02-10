@@ -6,6 +6,7 @@
 @use '../abstracts/mixins' as m;
 @use '../abstracts/primitives/effects' as e;
 @use '../abstracts/primitives/spacing' as s;
+@use '../abstracts/primitives/typography' as t;
 @use '../abstracts/semantic/colors' as c;
 
 // ---- Button (토큰/믹스인 기반) ----
@@ -23,6 +24,13 @@
 }
 .btn-outline {
   @include m.button-outline;
+}
+.btn-outline-active,
+.btn-outline.is-active {
+  background-color: c.$color-primary-dimmer;
+  box-shadow: inset 0 0 0 1px c.$color-primary;
+  color: c.$color-primary;
+  font-weight: t.$font-weight-semibold;
 }
 
 .btn-ghost {
@@ -55,7 +63,7 @@
   color: inherit;
   transition: color e.$transition-fast, opacity e.$transition-fast;
   &:hover:not(:disabled) {
-    color: c.$color-text-dim;
+    opacity: 0.5;
   }
 }
 

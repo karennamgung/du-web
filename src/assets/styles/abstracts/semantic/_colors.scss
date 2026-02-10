@@ -37,9 +37,13 @@ $color-bg-focus: $color-primary;
 // bg와 같은 밝기 레벨 사용
 $color-border-dimmer: c.$gray-100;  // bg-dimmer와 동일
 $color-border-dim: c.$gray-200;     // bg-dim과 동일
+$color-border-base: c.$gray-400;    // 기본 테두리
 $color-border-strong: c.$gray-500;  // bg-strong과 동일
 $color-border-stronger: c.$gray-700; // bg-stronger와 동일
 $color-border-focus: $color-primary;
+
+// ---- Form (input radio 등) ----
+$color-radio: c.$primary-500;
 
 // ---- Accent ----
 $color-accent-favorite: c.$primary-500;

@@ -4,7 +4,7 @@
     :class="{ 'header-px-2rem': route.path === '/' || route.path.startsWith('/admin') }"
   >
     <div class="flex items-center gap-lg flex-wrap">
-      <div class="flex items-center gap-xs">
+      <div class="flex items-center gap-sm">
         <button
         v-if="route.path !== '/' && !route.path.startsWith('/admin')"
         type="button"

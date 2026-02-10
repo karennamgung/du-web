@@ -153,10 +153,10 @@ WHERE c.birth_year = 2015;
 
 ## 하이브리드 접근 (선택사항)
 
-가장 많이 사용하는 첫 번째 아이만 별도 컬럼으로:
+가장 많이 사용하는 첫 번째 아이 아이만 별도 컬럼으로:
 
 ```sql
--- 가장 많이 조회하는 첫 번째 아이
+-- 가장 많이 조회하는 첫 번째 아이 아이
 child_name TEXT,
 child_birth_year INTEGER,
 child_gender TEXT,

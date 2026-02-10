@@ -48,16 +48,6 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['favorites']['Row'], 'created_at'> & { created_at?: string }
         Update: Partial<Database['public']['Tables']['favorites']['Insert']>
       }
-      academy_experience_tags: {
-        Row: {
-          user_id: string
-          academy_id: string
-          tag_key: string
-          created_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['academy_experience_tags']['Row'], 'created_at'> & { created_at?: string }
-        Update: Partial<Database['public']['Tables']['academy_experience_tags']['Insert']>
-      }
       profiles: {
         Row: {
           id: string
@@ -68,8 +58,7 @@ export interface Database {
           residence: string | null
           children: Array<{
             name: string
-            birth_year: number
-            education_institution: string | null
+            age: number
             gender: 'male' | 'female' | null
           }> | null
           onboarding_completed: boolean

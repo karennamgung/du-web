@@ -13,6 +13,7 @@
 @use 'abstracts/mixins' as m;
 @use 'components/button';
 @use 'components/icon';
+@use 'components/input';
 
 // ---- Type (타이포 통합: size / weight / leading) ----
 // !important로 base 스타일(h1~h6, p)을 덮어씀
@@ -33,6 +34,26 @@
 .type-leading-tight { line-height: t.$line-height-tight !important; }
 .type-leading-normal { line-height: t.$line-height-normal !important; }
 .type-leading-relaxed { line-height: t.$line-height-relaxed !important; }
+
+// ---- Text 스타일 (믹스인과 동일한 유틸리티) ----
+.text-caption {
+  font-size: t.$font-size-base !important;
+  font-weight: t.$font-weight-semibold !important;
+  color: c.$color-text-dim !important;
+  line-height: t.$line-height-normal !important;
+}
+.text-caption-sm {
+  font-size: t.$font-size-sm !important;
+  font-weight: t.$font-weight-semibold !important;
+  color: c.$color-text-dim !important;
+  line-height: t.$line-height-normal !important;
+}
+.text-caption-xs {
+  font-size: t.$font-size-xs !important;
+  font-weight: t.$font-weight-semibold !important;
+  color: c.$color-text-dimmer !important;
+  line-height: t.$line-height-normal !important;
+}
 
 // ---- Color (텍스트 색) ----
 // !important로 base 스타일(h1~h6, p)을 덮어씀
@@ -246,11 +267,6 @@
 // ---- Link ----
 .link {
   @include m.link-base;
-}
-
-// ---- Input (폼 필드용, mixin 사용) ----
-.input {
-  @include m.input-base;
 }
 
 // ---- Layout helpers ----

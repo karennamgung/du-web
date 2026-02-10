@@ -30,52 +30,48 @@
             />
           </div>
           <div class="input-group">
-            <label>출생년도</label>
+            <label>나이</label>
             <input
-              v-model.number="child.birthYear"
+              :model-value="child.age"
               type="number"
-              placeholder="예: 2015"
+              placeholder="예: 10"
               class="input"
-              min="2000"
-              :max="currentYear"
-            />
-          </div>
-          <div class="input-group">
-            <label>재원중인 교육기관</label>
-            <input
-              v-model="child.educationInstitution"
-              type="text"
-              placeholder="예: OO초등학교 (선택사항)"
-              class="input"
+              min="0"
+              max="100"
+              @input="(e) => (child.age = Math.max(0, Math.min(100, Number((e.target as HTMLInputElement).value) || 0)))"
             />
           </div>
           <div class="input-group">
             <label>성별</label>
-            <div class="gender-options">
-              <button
-                type="button"
-                class="gender-btn"
-                :class="{ active: child.gender === 'male' }"
-                @click="child.gender = 'male'"
-              >
-                남자
-              </button>
-              <button
-                type="button"
-                class="gender-btn"
-                :class="{ active: child.gender === 'female' }"
-                @click="child.gender = 'female'"
-              >
-                여자
-              </button>
-              <button
-                type="button"
-                class="gender-btn"
-                :class="{ active: child.gender === null }"
-                @click="child.gender = null"
-              >
-                선택안함
-              </button>
+            <div class="radio-selector-group">
+              <label class="radio-selector radio-selector--with-label">
+                <span class="radio-selector__circle">
+                  <input
+                    type="radio"
+                    class="radio-selector__input"
+                    :name="`onboarding-gender-${index}`"
+                    value="male"
+                    :checked="child.gender === 'male'"
+                    @change="child.gender = 'male'"
+                  />
+                  <span class="radio-selector__dot" aria-hidden="true" />
+                </span>
+                <span class="radio-selector__label">남아</span>
+              </label>
+              <label class="radio-selector radio-selector--with-label">
+                <span class="radio-selector__circle">
+                  <input
+                    type="radio"
+                    class="radio-selector__input"
+                    :name="`onboarding-gender-${index}`"
+                    value="female"
+                    :checked="child.gender === 'female'"
+                    @change="child.gender = 'female'"
+                  />
+                  <span class="radio-selector__dot" aria-hidden="true" />
+                </span>
+                <span class="radio-selector__label">여아</span>
+              </label>
             </div>
           </div>
         </div>
@@ -109,12 +105,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 interface Child {
   name: string
-  birthYear: number
-  educationInstitution: string | null
+  age: number
   gender: 'male' | 'female' | null
 }
 
@@ -136,26 +131,23 @@ const children = ref<Child[]>(
     : [
         {
           name: '',
-          birthYear: new Date().getFullYear() - 10,
-          educationInstitution: null,
+          age: 10,
           gender: null,
         },
       ]
 )
 
-const currentYear = computed(() => new Date().getFullYear())
 
-const childLabels = ['첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째', '아홉째', '열째']
+const childLabels = ['첫째 아이', '둘째 아이', '셋째 아이', '넷째 아이', '다섯째 아이', '여섯째 아이', '일곱째 아이', '여덟째 아이', '아홉째 아이', '열째 아이']
 
 function getChildLabel(index: number): string {
-  return `${childLabels[index] || `${index + 1}번째`}아이`
+  return `${childLabels[index] || `${index + 1}번째 아이`}아이`
 }
 
 function addChild() {
   children.value.push({
     name: '',
-    birthYear: new Date().getFullYear() - 10,
-    educationInstitution: null,
+    age: 10,
     gender: null,
   })
   emit('update-data', { children: children.value })
@@ -258,30 +250,4 @@ watch(
   }
 }
 
-.gender-options {
-  display: flex;
-  gap: v.$space-sm;
-}
-
-.gender-btn {
-  flex: 1;
-  padding: v.$space-sm v.$space-md;
-  border: 2px solid v.$color-border-dim;
-  border-radius: v.$radius-md;
-  background-color: v.$color-bg-base;
-  color: v.$color-text-base;
-  cursor: pointer;
-  transition: all v.$transition-base;
-
-  &:hover {
-    border-color: v.$color-primary;
-  }
-
-  &.active {
-    border-color: v.$color-primary;
-    background-color: v.$color-primary-dimmer;
-    color: v.$color-primary;
-    font-weight: v.$font-weight-semibold;
-  }
-}
 </style>

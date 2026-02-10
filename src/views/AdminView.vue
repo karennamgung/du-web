@@ -3,7 +3,7 @@
     <h1>학원 페이지</h1>
     <p class="color-dim mt-sm">학원 페이지 placeholder</p>
     <nav class="flex items-center justify-center gap-xs mt-md">
-      <router-link to="/" class="link color-primary">사용자</router-link>
+      <router-link to="/" class="link color-primary">사용자 페이지</router-link>
       <span class="color-dimmer">|</span>
       <router-link to="/admin" class="link color-primary">학원 페이지</router-link>
     </nav>

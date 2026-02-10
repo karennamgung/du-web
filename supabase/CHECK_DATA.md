@@ -57,7 +57,7 @@ Supabase 대시보드에서 입력된 온보딩 정보를 확인하는 방법입
 - **birth_year**: 출생년도
 - **education_institution**: 재원중인 교육기관 (없으면 null)
 - **gender**: 성별 (`male`, `female`, 또는 null)
-- **order**: 순서 (첫째, 둘째 등)
+- **order**: 순서 (첫째 아이, 둘째 아이 등)
 - **created_at**: 생성 시간
 - **updated_at**: 최종 수정 시간
 

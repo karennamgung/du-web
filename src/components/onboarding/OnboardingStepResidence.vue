@@ -132,7 +132,7 @@ function handleNext() {
   }
 
   .input-hint {
-    @include v.text-caption;
+    @include v.text-caption-sm;
     margin: 0;
   }
 }

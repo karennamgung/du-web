@@ -75,7 +75,7 @@ export function getSubjectIcon(subject: string | null | undefined): string {
 /**
  * 학원 과목 배열에서 대표 과목 아이콘 경로 반환 (지도 마커용)
  * 
- * 필터·지도용: 첫 번째 과목을 표준 태그로 변환하여 아이콘 반환
+ * 필터·지도용: 첫 번째 아이 과목을 표준 태그로 변환하여 아이콘 반환
  * 
  * @param subjects - DB에서 가져온 원본 과목 배열
  * @returns MDI 아이콘 경로
@@ -175,4 +175,28 @@ export function getCanonicalSubjects(subjects: string[] | null | undefined): Sub
 /** 유효한 연령 그룹인지 확인 */
 export function isValidAgeGroup(ageGroup: string): ageGroup is AgeGroup {
   return AGE_GROUP_LIST.includes(ageGroup as AgeGroup)
+}
+
+/**
+ * 만 나이 → 대상 나이 필터(연령 그룹) 매핑
+ * 유치 0–6세, 초등 7–12세, 중등 13–15세, 고등 16세 이상
+ */
+export function getAgeGroupFromAge(age: number): AgeGroup {
+  if (age <= 6) return '유치'
+  if (age <= 12) return '초등'
+  if (age <= 15) return '중등'
+  return '고등'
+}
+
+/**
+ * 만 나이 배열 → 대상 나이 필터(연령 그룹) 배열 (중복 제거, AGE_GROUP_ORDER 순)
+ */
+export function getAgeGroupsFromAges(ages: number[]): AgeGroup[] {
+  const set = new Set<AgeGroup>()
+  ages.forEach((age) => set.add(getAgeGroupFromAge(age)))
+  return Array.from(set).sort((a, b) => {
+    const i = AGE_GROUP_ORDER.indexOf(a)
+    const j = AGE_GROUP_ORDER.indexOf(b)
+    return i - j
+  })
 }

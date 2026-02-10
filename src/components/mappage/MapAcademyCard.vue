@@ -61,8 +61,6 @@
           <span class="map-academy-card-meta-divider color-dimmer">·</span>
         </template>
         <p class="type-size-sm type-weight-medium">리뷰 {{ commentCount }}</p>
-        <span class="map-academy-card-meta-divider color-dimmer">·</span>
-        <p class="type-size-sm type-weight-medium">추천 {{ positiveCount }}</p>
       </div>
       <div v-if="(displayedSubjects.length || displayedAgeGroups.length)" class="map-academy-card-tags">
         <TagChip v-for="s in displayedSubjects" :key="'s-' + s" :label="s" type="subject" size="small" />
@@ -87,7 +85,6 @@ const props = defineProps<{
   isFavorited: boolean
   favoriteLoading: boolean
   commentCount: number
-  positiveCount: number
   /** 현재 위치에서의 거리 및 소요 시간 정보 */
   distanceInfo: { distance: string; drivingTime: number; walkingTime: number } | null
 }>()

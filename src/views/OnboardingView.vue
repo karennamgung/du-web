@@ -58,8 +58,7 @@ interface OnboardingData {
   residence: string | null
   children: Array<{
     name: string
-    birthYear: number
-    educationInstitution: string | null
+    age: number
     gender: 'male' | 'female' | null
   }>
 }
@@ -215,8 +214,7 @@ async function handleComplete() {
         .filter((child) => child.name.trim().length > 0) // 이름이 있는 아이만 저장
         .map((child) => ({
           name: child.name.trim(),
-          birth_year: child.birthYear,
-          education_institution: child.educationInstitution?.trim() || null,
+          age: child.age,
           gender: child.gender,
         }))
       

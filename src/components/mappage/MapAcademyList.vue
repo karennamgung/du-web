@@ -58,14 +58,6 @@
         <button
           type="button"
           class="chip"
-          :class="{ 'chip-active': sortBy === 'recommend' }"
-          @click="$emit('update:sortBy', 'recommend')"
-        >
-          추천순
-        </button>
-        <button
-          type="button"
-          class="chip"
           :class="{ 'chip-active': sortBy === 'name' }"
           @click="$emit('update:sortBy', 'name')"
         >
@@ -84,7 +76,6 @@
           :is-favorited="isFavorited(singleCardAcademy.id)"
           :favorite-loading="favoriteLoading"
           :comment-count="commentCountByAcademyId[singleCardAcademy.id] ?? 0"
-          :positive-count="positiveCount(singleCardAcademy.id)"
           :distance-info="myLocation ? formatDistanceWithTime(calculateDistance(myLocation.lat, myLocation.lng, singleCardAcademy.lat, singleCardAcademy.lng)) : null"
           @click="$emit('academyClick', singleCardAcademy)"
           @favorite-click="$emit('favoriteClick', singleCardAcademy.id)"
@@ -102,7 +93,6 @@
           :is-favorited="isFavorited(academy.id)"
           :favorite-loading="favoriteLoading"
           :comment-count="commentCountByAcademyId[academy.id] ?? 0"
-          :positive-count="positiveCount(academy.id)"
           :distance-info="myLocation ? formatDistanceWithTime(calculateDistance(myLocation.lat, myLocation.lng, academy.lat, academy.lng)) : null"
           @click="$emit('academyClick', academy)"
           @favorite-click="$emit('favoriteClick', academy.id)"
@@ -171,11 +161,10 @@ const props = defineProps<{
   selectedAcademyId: string | null
   searchSelectedAcademyId: string | null
   hasVisibleBoundsFilter: boolean
-  sortBy: 'comments' | 'recommend' | 'name'
+  sortBy: 'comments' | 'name'
   isFavorited: (id: string) => boolean
   favoriteLoading: boolean
   commentCountByAcademyId: Record<string, number>
-  positiveCount: (id: string) => number
   /** 모바일에서 지도로 학원 선택 시, 목록 대신 이 카드만 표시 (에어비엔비 스타일) */
   singleCardAcademy: Academy | null
   /** 현재 위치 (거리 계산용) */
@@ -188,7 +177,7 @@ defineEmits<{
   dragEnd: []
   headerClick: []
   'clearVisibleBoundsFilter': []
-  'update:sortBy': [value: 'comments' | 'recommend' | 'name']
+  'update:sortBy': [value: 'comments' | 'name']
   academyClick: [academy: Academy]
   favoriteClick: [academyId: string]
   academyMouseenter: [academy: Academy]

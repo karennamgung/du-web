@@ -5,8 +5,7 @@ import { useAuthStore } from './auth'
 
 export interface Child {
   name: string
-  birth_year: number
-  education_institution: string | null
+  age: number
   gender: 'male' | 'female' | null
 }
 
@@ -100,27 +99,42 @@ export const useProfileStore = defineStore('profile', () => {
         })
         profile.value = profileData || null
         
-        // 아이 정보는 profiles.children JSON 필드에서 가져옴
-        const newChildren = profile.value?.children || []
-        children.value = newChildren
+        // 아이 정보는 profiles.children JSON 필드에서 가져옴 (저장된 값 정규화: birth_year → age 보정)
+        const rawChildren = profile.value?.children || []
+        children.value = rawChildren.map((raw: Record<string, unknown>) => {
+          const hasAge = typeof (raw as Child).age === 'number'
+          const birthYear = typeof (raw as { birth_year?: number }).birth_year === 'number'
+            ? (raw as { birth_year: number }).birth_year
+            : null
+          const age = hasAge
+            ? (raw as Child).age
+            : birthYear != null
+              ? Math.min(100, Math.max(0, new Date().getFullYear() - birthYear))
+              : 10
+          return {
+            name: String((raw as Child).name ?? ''),
+            age,
+            gender: ((raw as Child).gender as Child['gender']) ?? null,
+          }
+        })
         
         // 선택된 아이 인덱스 초기화 (첫 번째 아이 또는 null)
-        if (newChildren.length > 0) {
+        if (children.value.length > 0) {
           // localStorage에서 저장된 선택값 복원 시도
           try {
             const saved = localStorage.getItem(`selectedChildIndex_${auth.user.id}`)
             if (saved !== null) {
               const index = parseInt(saved, 10)
-              if (index >= 0 && index < newChildren.length) {
+              if (index >= 0 && index < children.value.length) {
                 selectedChildIndex.value = index
               } else {
-                selectedChildIndex.value = 0 // 첫 번째 아이
+                selectedChildIndex.value = 0 // 첫 번째 아이 아이
               }
             } else {
-              selectedChildIndex.value = 0 // 첫 번째 아이
+              selectedChildIndex.value = 0 // 첫 번째 아이 아이
             }
           } catch {
-            selectedChildIndex.value = 0 // 첫 번째 아이
+            selectedChildIndex.value = 0 // 첫 번째 아이 아이
           }
         } else {
           selectedChildIndex.value = null

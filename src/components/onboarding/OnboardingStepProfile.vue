@@ -68,6 +68,12 @@
 import { ref, computed, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import {
+  DEFAULT_AVATARS,
+  isDefaultAvatarUrl,
+  getDefaultAvatarLetterFromUrl,
+  toDefaultAvatarUrl,
+} from '@/constants/avatars'
 
 interface Props {
   onboardingData: {
@@ -84,26 +90,23 @@ const emit = defineEmits<{
 
 const auth = useAuthStore()
 
+function getInitialAvatarIndex(profileImageUrl: string | null): number | null {
+  if (!profileImageUrl) return 0
+  if (isDefaultAvatarUrl(profileImageUrl)) {
+    const letter = getDefaultAvatarLetterFromUrl(profileImageUrl)
+    const idx = DEFAULT_AVATARS.findIndex((a) => a.letter === letter)
+    return idx >= 0 ? idx : 0
+  }
+  return null // 업로드 이미지
+}
+
 const nickname = ref(props.onboardingData.nickname || '')
 const nicknameError = ref('')
-const selectedAvatarIndex = ref<number | null>(props.onboardingData.profileImageUrl ? null : 0) // 기본 아바타 선택
+const selectedAvatarIndex = ref<number | null>(getInitialAvatarIndex(props.onboardingData.profileImageUrl))
 const profileImageUrl = ref<string | null>(props.onboardingData.profileImageUrl)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const defaultAvatars = [
-  { letter: 'K', color: '#8B5CF6' },
-  { letter: 'A', color: '#6B7280' },
-  { letter: 'B', color: '#10B981' },
-  { letter: 'C', color: '#F59E0B' },
-  { letter: 'D', color: '#EF4444' },
-  { letter: 'E', color: '#3B82F6' },
-  { letter: 'F', color: '#EC4899' },
-  { letter: 'G', color: '#14B8A6' },
-  { letter: 'H', color: '#F97316' },
-  { letter: 'I', color: '#6366F1' },
-  { letter: 'J', color: '#84CC16' },
-  { letter: 'L', color: '#A855F7' },
-]
+const defaultAvatars = DEFAULT_AVATARS
 
 const canProceed = computed(() => {
   const hasNickname = nickname.value.trim().length > 0
@@ -152,9 +155,8 @@ function validateNickname() {
 
 function selectAvatar(index: number) {
   selectedAvatarIndex.value = index
-  profileImageUrl.value = null // 기본 아바타 선택 시 업로드 이미지 제거
-  // 기본 아바타는 나중에 저장 시 처리 (임시로 null 전달)
-  emit('update-data', { nickname: nickname.value, profileImageUrl: null })
+  profileImageUrl.value = null
+  emit('update-data', { nickname: nickname.value, profileImageUrl: toDefaultAvatarUrl(DEFAULT_AVATARS[index].letter) })
 }
 
 function handleImageUpload() {
@@ -190,20 +192,10 @@ async function handleFileChange(event: Event) {
 }
 
 function handleNext() {
-  console.log('[OnboardingStepProfile] 다음 버튼 클릭:', {
-    nickname: nickname.value,
-    hasProfileImage: !!profileImageUrl.value,
-    selectedAvatarIndex: selectedAvatarIndex.value,
-    canProceed: canProceed.value,
-  })
-  
   if (canProceed.value) {
-    // 최종 데이터 업데이트
-    emit('update-data', { 
-      nickname: nickname.value, 
-      profileImageUrl: profileImageUrl.value 
-    })
-    // 다음 단계로 이동
+    const finalImageUrl =
+      profileImageUrl.value ?? (selectedAvatarIndex.value !== null ? toDefaultAvatarUrl(DEFAULT_AVATARS[selectedAvatarIndex.value].letter) : null)
+    emit('update-data', { nickname: nickname.value, profileImageUrl: finalImageUrl })
     emit('next')
   } else {
     console.warn('[OnboardingStepProfile] 다음 단계로 진행할 수 없음:', {
@@ -265,12 +257,12 @@ watch(profileImageUrl, () => {
   }
 
   .input-hint {
-    @include v.text-caption;
+    @include v.text-caption-sm;
     margin: 0;
   }
 
   .input-error {
-    @include v.text-caption;
+    @include v.text-caption-sm;
     color: v.$color-accent-warning;
     margin: 0;
   }

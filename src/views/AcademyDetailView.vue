@@ -83,56 +83,6 @@
         </div>
 
         <aside class="academy-detail-right">
-          <section class="academy-detail-experience">
-            <h2 class="mb-sm">학원 경험 태그</h2>
-            <p v-if="experienceLoading" class="color-dim">불러오는 중...</p>
-            <template v-else>
-              <div class="academy-detail-experience-group">
-                <p class="color-dim">
-                  추천해요
-                  <small class="color-dimmer">({{ positiveTotalCount }})</small>
-                </p>
-                <div class="academy-detail-tag-list">
-                  <button
-                    v-for="tag in positiveExperienceTags"
-                    :key="tag.tag_key"
-                    type="button"
-                    class="academy-detail-tag-chip type-size-sm color-dim"
-                    :class="{ 'academy-detail-tag-chip-selected': experienceIsSelected(tag.tag_key) }"
-                    :disabled="experienceToggling"
-                    @click="onExperienceTagClick(tag.tag_key)"
-                  >
-                    {{ tag.label }}
-                    <small v-if="tag.count > 0" class="academy-detail-tag-count type-size-xs">{{ tag.count }}</small>
-                  </button>
-                </div>
-              </div>
-              <div class="academy-detail-experience-group">
-                <p class="color-dim">
-                  이런점이 아쉬워요
-                  <small class="color-dimmer">({{ negativeTotalCount }})</small>
-                </p>
-                <div class="academy-detail-tag-list">
-                  <button
-                    v-for="tag in negativeExperienceTags"
-                    :key="tag.tag_key"
-                    type="button"
-                    class="academy-detail-tag-chip type-size-sm color-dim"
-                    :class="{ 'academy-detail-tag-chip-selected academy-detail-tag-chip-negative': experienceIsSelected(tag.tag_key) }"
-                    :disabled="experienceToggling"
-                    @click="onExperienceTagClick(tag.tag_key)"
-                  >
-                    {{ tag.label }}
-                    <small v-if="tag.count > 0" class="academy-detail-tag-count type-size-xs">{{ tag.count }}</small>
-                  </button>
-                </div>
-              </div>
-            </template>
-            <p v-if="!auth.isAuthenticated" class="color-dim mt-sm">
-              로그인하면 경험 태그를 선택할 수 있어요.
-            </p>
-          </section>
-
           <section class="academy-detail-comments">
             <div class="academy-detail-comments-header">
               <h2>후기 남기기</h2>
@@ -143,7 +93,7 @@
             <CommentComposer
               v-if="showComposer && academy"
               :academy-id="academy.id"
-              :selected-tag-keys="Array.from(myTagKeys)"
+              :selected-tag-keys="[]"
               @created="onCommentCreated"
             />
             <CommentList v-if="academy" ref="commentListRef" :academy-id="academy.id" />
@@ -164,9 +114,7 @@ import CommentList from '@/components/CommentList.vue'
 import LoginModal from '@/components/LoginModal.vue'
 import TagChip from '@/components/TagChip.vue'
 import Icon from '@/components/Icon.vue'
-import { EXPERIENCE_TAGS_NEGATIVE, EXPERIENCE_TAGS_POSITIVE } from '@/constants/experienceTags'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
-import { useAcademyExperiences } from '@/composables/useAcademyExperiences'
 import { useFavorites } from '@/composables/useFavorites'
 import { useAuthStore } from '@/stores/auth'
 import type { Academy } from '@/types/academy'
@@ -201,32 +149,6 @@ const showComposer = ref(false)
 
 const auth = useAuthStore()
 const { isFavorited, toggle, loading: favoriteLoading } = useFavorites()
-
-const academyIdRef = computed(() => academy.value?.id ?? null)
-const {
-  tagCounts: experienceTagCounts,
-  myTagKeys,
-  loading: experienceLoading,
-  toggling: experienceToggling,
-  isSelected: experienceIsSelected,
-  toggle: experienceToggle,
-} = useAcademyExperiences(academyIdRef)
-
-const positiveKeys = new Set(EXPERIENCE_TAGS_POSITIVE.map((t) => t.key))
-const negativeKeys = new Set(EXPERIENCE_TAGS_NEGATIVE.map((t) => t.key))
-
-const positiveExperienceTags = computed(() =>
-  experienceTagCounts.value.filter((t) => t != null && t.tag_key != null && positiveKeys.has(t.tag_key))
-)
-const negativeExperienceTags = computed(() =>
-  experienceTagCounts.value.filter((t) => t != null && t.tag_key != null && negativeKeys.has(t.tag_key))
-)
-const positiveTotalCount = computed(() =>
-  positiveExperienceTags.value.reduce((sum, t) => sum + t.count, 0)
-)
-const negativeTotalCount = computed(() =>
-  negativeExperienceTags.value.reduce((sum, t) => sum + t.count, 0)
-)
 
 const academyAiAnalysisText = computed(() => {
   const a = academy.value
@@ -290,18 +212,6 @@ async function onFavoriteClick() {
     await toggle(academy.value.id)
   } catch (e) {
     alert(e instanceof Error ? e.message : '즐겨찾기 변경에 실패했습니다.')
-  }
-}
-
-async function onExperienceTagClick(tagKey: string) {
-  if (!auth.isAuthenticated) {
-    showLoginModal.value = true
-    return
-  }
-  try {
-    await experienceToggle(tagKey)
-  } catch (e) {
-    alert(e instanceof Error ? e.message : '경험 태그 변경에 실패했습니다.')
   }
 }
 

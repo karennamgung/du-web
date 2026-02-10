@@ -136,7 +136,7 @@ function handleNext() {
   }
 
   p {
-    @include v.text-caption;
+    @include v.text-caption-sm;
     margin: 0;
     text-align: center;
   }

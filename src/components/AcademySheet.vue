@@ -77,53 +77,6 @@
                 </template>
               </dl>
             </section>
-            <section v-if="academy" class="sheet-experience-tags">
-              <h3 class="sheet-experience-title ">학원 경험 태그</h3>
-              <p v-if="experienceLoading" class="sheet-experience-loading color-dim">불러오는 중...</p>
-              <template v-else>
-                <div class="sheet-experience-group">
-                  <p class="sheet-experience-group-label color-dim">
-                    추천해요
-                    <small class="sheet-experience-group-count color-dimmer">({{ positiveTotalCount }})</small>
-                  </p>
-                  <div class="sheet-tag-list">
-                    <button
-                      v-for="tag in positiveExperienceTags"
-                      :key="tag.tag_key"
-                      type="button"
-                      class="sheet-tag-chip sheet-tag-chip-positive type-size-sm color-dim"
-                      :class="{ 'sheet-tag-chip-selected': experienceIsSelected(tag.tag_key) }"
-                      :disabled="experienceToggling"
-                      @click="onExperienceTagClick(tag.tag_key)"
-                    >
-                      {{ tag.label }}
-                      <small v-if="tag.count > 0" class="sheet-tag-count type-size-xs">{{ tag.count }}</small>
-                    </button>
-                  </div>
-                </div>
-                <div class="sheet-experience-group">
-                  <p class="sheet-experience-group-label color-dim">
-                    이런점이 아쉬워요
-                    <small class="sheet-experience-group-count color-dimmer">({{ negativeTotalCount }})</small>
-                  </p>
-                  <div class="sheet-tag-list">
-                    <button
-                      v-for="tag in negativeExperienceTags"
-                      :key="tag.tag_key"
-                      type="button"
-                      class="sheet-tag-chip sheet-tag-chip-negative type-size-sm color-dim"
-                      :class="{ 'sheet-tag-chip-selected': experienceIsSelected(tag.tag_key) }"
-                      :disabled="experienceToggling"
-                      @click="onExperienceTagClick(tag.tag_key)"
-                    >
-                      {{ tag.label }}
-                      <small v-if="tag.count > 0" class="sheet-tag-count type-size-xs">{{ tag.count }}</small>
-                    </button>
-                  </div>
-                </div>
-              </template>
-              <p v-if="!auth.isAuthenticated" class="sheet-experience-hint color-dim">로그인하면 경험 태그를 선택할 수 있어요.</p>
-            </section>
             <div class="sheet-actions">
               <button type="button" class="sheet-action-btn" @click="onExperienceClick">
                 경험 남기기
@@ -132,7 +85,7 @@
             <CommentComposer
               v-if="showComposer"
               :academy-id="academy.id"
-              :selected-tag-keys="Array.from(myTagKeys)"
+              :selected-tag-keys="[]"
               @created="onCommentCreated"
             />
             <CommentList ref="commentListRef" :academy-id="academy.id" />
@@ -150,9 +103,7 @@ import CommentList from '@/components/CommentList.vue'
 import LoginModal from '@/components/LoginModal.vue'
 import TagChip from '@/components/TagChip.vue'
 import Icon from '@/components/Icon.vue'
-import { EXPERIENCE_TAGS_NEGATIVE, EXPERIENCE_TAGS_POSITIVE } from '@/constants/experienceTags'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
-import { useAcademyExperiences } from '@/composables/useAcademyExperiences'
 import { useFavorites } from '@/composables/useFavorites'
 import { useAuthStore } from '@/stores/auth'
 import type { Academy } from '@/types/academy'
@@ -172,7 +123,6 @@ const emit = defineEmits<{
 
 const auth = useAuthStore()
 const { isFavorited, toggle, loading: favoriteLoading } = useFavorites()
-const academyIdRef = computed(() => props.academy?.id ?? null)
 
 /** 시트에 표시할 과목 태그 (DB 원본, null/undefined 제외) */
 const displayedSubjects = computed(() =>
@@ -192,31 +142,6 @@ const displayedAgeGroups = computed(() => {
     return a.localeCompare(b)
   })
 })
-const {
-  tagCounts: experienceTagCounts,
-  myTagKeys,
-  loading: experienceLoading,
-  toggling: experienceToggling,
-  isSelected: experienceIsSelected,
-  toggle: experienceToggle,
-} = useAcademyExperiences(academyIdRef)
-
-const positiveKeys = new Set(EXPERIENCE_TAGS_POSITIVE.map((t) => t.key))
-const negativeKeys = new Set(EXPERIENCE_TAGS_NEGATIVE.map((t) => t.key))
-
-const positiveExperienceTags = computed(() =>
-  experienceTagCounts.value.filter((t) => t != null && t.tag_key != null && positiveKeys.has(t.tag_key))
-)
-const negativeExperienceTags = computed(() =>
-  experienceTagCounts.value.filter((t) => t != null && t.tag_key != null && negativeKeys.has(t.tag_key))
-)
-const positiveTotalCount = computed(() =>
-  positiveExperienceTags.value.reduce((sum, t) => sum + t.count, 0)
-)
-const negativeTotalCount = computed(() =>
-  negativeExperienceTags.value.reduce((sum, t) => sum + t.count, 0)
-)
-
 /** AI 분석 문구: DB/API 값이 있으면 사용, 없으면 학원 정보 기반 샘플 문구 */
 const academyAiAnalysisText = computed(() => {
   const a = props.academy
@@ -255,17 +180,6 @@ async function onFavoriteClick() {
   }
 }
 
-async function onExperienceTagClick(tagKey: string) {
-  if (!auth.isAuthenticated) {
-    showLoginModal.value = true
-    return
-  }
-  try {
-    await experienceToggle(tagKey)
-  } catch (e) {
-    alert(e instanceof Error ? e.message : '경험 태그 변경에 실패했습니다.')
-  }
-}
 
 function onExperienceClick() {
   if (!auth.isAuthenticated) {

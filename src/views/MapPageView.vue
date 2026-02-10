@@ -32,7 +32,6 @@
           :is-favorited="isFavorited"
           :favorite-loading="favoriteLoading"
           :comment-count-by-academy-id="commentCountByAcademyId"
-          :positive-count="positiveCount"
           :single-card-academy="isMobile && selectedAcademy ? selectedAcademy : null"
           :my-location="myLocation"
           @drag-start="onDragStart"
@@ -83,13 +82,13 @@ import MapCategoryBar from '@/components/mappage/MapCategoryBar.vue'
 import MapContainer from '@/components/mappage/MapContainer.vue'
 import MapAcademyList from '@/components/mappage/MapAcademyList.vue'
 import { useFavorites } from '@/composables/useFavorites'
-import { EXPERIENCE_TAGS_NEGATIVE, EXPERIENCE_TAGS_POSITIVE } from '@/constants/experienceTags'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
 import { supabase } from '@/lib/supabase'
 import type { Academy } from '@/types/academy'
 import { mdiMapMarker, mdiMapOutline, mdiCircle, mdiSquare } from '@mdi/js'
-import { getSubjectIconPath, MY_LOCATION_MARKER_ICON, AGE_GROUP_ORDER, getCanonicalSubject, isValidAgeGroup, isValidSubject } from '@/constants/subjectTypes'
+import { getSubjectIconPath, MY_LOCATION_MARKER_ICON, AGE_GROUP_ORDER, getCanonicalSubject, isValidAgeGroup, isValidSubject, getAgeGroupsFromAges } from '@/constants/subjectTypes'
+import { useProfileStore } from '@/stores/profile'
 
 const SONGDO_CENTER = { lat: 37.3833, lng: 126.6567 }
 /** MDI 원 아이콘 마커: 원 중심이 좌표에 오도록 앵커 설정 */
@@ -101,6 +100,7 @@ const SCRIPT_ID = 'naver-maps-sdk'
 const clientId = import.meta.env.VITE_NAVER_MAP_CLIENT_ID ?? ''
 
 const router = useRouter()
+const profileStore = useProfileStore()
 const mapContainerComponentRef = ref<InstanceType<typeof MapContainer> | null>(null)
 /** 지도 인스턴스 준비 여부 — 버튼(+, -, 재검색 등) 활성화용 (map은 비반응형 변수라 ref로 노출) */
 const mapReady = ref(false)
@@ -109,13 +109,25 @@ const selectedAcademy = ref<Academy | null>(null)
 const academies = ref<Academy[]>([])
 const loading = ref(true)
 const selectedAgeGroups = ref<string[]>([])
+
+/** 프로필/선택된 사용자(학부모·자녀)의 나이 → 대상나이 필터에 반영할 연령 그룹 */
+const profileAgeGroups = computed(() => {
+  const profile = profileStore.profile
+  const children = profileStore.children
+  const currentChild = profileStore.currentChild
+  if (!profile) return []
+  if (profile.user_type === 'parent') {
+    const ages = currentChild ? [currentChild.age] : children.map((c) => c.age).filter((a) => typeof a === 'number')
+    return getAgeGroupsFromAges(ages)
+  }
+  return []
+})
+
 const selectedSubjects = ref<string[]>([])
 /** 검색 드롭다운에서 선택한 학원 ID — 지도/목록에서 하이라이트·맨 위로 표시 */
 const searchSelectedAcademyId = ref<string | null>(null)
 const commentCountByAcademyId = ref<Record<string, number>>({})
-const positiveExperienceCountByAcademyId = ref<Record<string, number>>({})
-const negativeExperienceCountByAcademyId = ref<Record<string, number>>({})
-const academyListSortBy = ref<'comments' | 'recommend' | 'name'>('name')
+const academyListSortBy = ref<'comments' | 'name'>('name')
 
 // 모바일 바텀 시트 상태
 const isMobile = ref(false)
@@ -265,6 +277,15 @@ function toggleAgeGroup(opt: string) {
   else selectedAgeGroups.value = selectedAgeGroups.value.filter((x) => x !== opt)
 }
 
+// 프로필/선택된 사용자(학부모·자녀)가 바뀌면 대상나이 필터를 해당 연령 그룹으로 자동 지정
+watch(
+  profileAgeGroups,
+  (groups) => {
+    selectedAgeGroups.value = [...groups]
+  },
+  { immediate: true }
+)
+
 function toggleSubject(opt: string) {
   const i = selectedSubjects.value.indexOf(opt)
   if (i === -1) selectedSubjects.value = [...selectedSubjects.value, opt]
@@ -323,16 +344,11 @@ const filteredAcademies = computed(() => {
   return byBoundary.length > 0 ? byBoundary : baseList
 })
 
-const POSITIVE_TAG_KEYS = new Set(EXPERIENCE_TAGS_POSITIVE.map((t) => t.key))
-const NEGATIVE_TAG_KEYS = new Set(EXPERIENCE_TAGS_NEGATIVE.map((t) => t.key))
-
 const sortedAcademyList = computed(() => {
   const list = [...filteredAcademies.value]
   const sortBy = academyListSortBy.value
   if (sortBy === 'comments') {
     list.sort((a, b) => (commentCountByAcademyId.value[b.id] ?? 0) - (commentCountByAcademyId.value[a.id] ?? 0))
-  } else if (sortBy === 'recommend') {
-    list.sort((a, b) => (positiveExperienceCountByAcademyId.value[b.id] ?? 0) - (positiveExperienceCountByAcademyId.value[a.id] ?? 0))
   } else {
     list.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
   }
@@ -421,10 +437,6 @@ function resetToDefault() {
     },
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   )
-}
-
-function positiveCount(academyId: string): number {
-  return positiveExperienceCountByAcademyId.value[String(academyId)] ?? 0
 }
 
 function openAcademy(academy: Academy, opts?: { scrollList?: boolean }) {
@@ -1108,46 +1120,6 @@ async function fetchCommentCounts() {
   }
 }
 
-/** 학원 상세 "추천해요" 태그/칩 클릭 수 (추천순 정렬용) */
-async function fetchPositiveExperienceCounts() {
-  try {
-    const { data, error } = await supabase
-      .from('academy_experience_tags')
-      .select('academy_id, tag_key')
-    if (error) throw error
-    const counts: Record<string, number> = {}
-    ;(data ?? []).forEach((row) => {
-      if (!POSITIVE_TAG_KEYS.has(row.tag_key)) return
-      const id = row.academy_id
-      counts[id] = (counts[id] ?? 0) + 1
-    })
-    positiveExperienceCountByAcademyId.value = counts
-  } catch (e) {
-    console.error('Positive experience counts fetch failed:', e)
-    positiveExperienceCountByAcademyId.value = {}
-  }
-}
-
-/** 학원 상세 "이런 점이 아쉬워요" 태그/칩 클릭 수 (카드 표시용) */
-async function fetchNegativeExperienceCounts() {
-  try {
-    const { data, error } = await supabase
-      .from('academy_experience_tags')
-      .select('academy_id, tag_key')
-    if (error) throw error
-    const counts: Record<string, number> = {}
-    ;(data ?? []).forEach((row) => {
-      if (!NEGATIVE_TAG_KEYS.has(row.tag_key)) return
-      const id = row.academy_id
-      counts[id] = (counts[id] ?? 0) + 1
-    })
-    negativeExperienceCountByAcademyId.value = counts
-  } catch (e) {
-    console.error('Negative experience counts fetch failed:', e)
-    negativeExperienceCountByAcademyId.value = {}
-  }
-}
-
 watch(filteredAcademies, (list) => {
   // 검색 드롭다운에서 방금 선택한 경우 선택 해제하지 않음 (하이라이트 유지)
   if (skipClearSelectionFromFilter.value) {
@@ -1276,8 +1248,6 @@ onMounted(async () => {
   try {
     academies.value = await fetchAcademies()
     await fetchCommentCounts()
-    await fetchPositiveExperienceCounts()
-    await fetchNegativeExperienceCounts()
     await loadNaverMapScript()
     // loading이 false가 되어 컴포넌트가 렌더링될 때까지 기다림
     loading.value = false

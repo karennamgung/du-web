@@ -28,7 +28,7 @@ const isOpen = computed({
 
 const modalTitle = computed(() => {
   if (profileStore.profile?.user_type === 'parent') {
-    return '자녀 선택'
+    return '사용자 선택'
   } else if (profileStore.profile?.user_type === 'student') {
     return '내 정보'
   }
