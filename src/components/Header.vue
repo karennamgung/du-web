@@ -52,9 +52,32 @@
       </div>
     </div>
     <div class="flex items-center gap-md">
-      <button v-if="!isAdminRoute" type="button" class="btn btn-icon-only" @click="router.push('/admin')">학원관리자</button>
       <template v-if="auth.isAuthenticated">
-        <button type="button" class="btn btn-outline" @click="auth.signOut()">로그아웃</button>
+        <div class="header-user-wrap">
+          <button
+            type="button"
+            class="header-avatar-btn"
+            aria-label="사용자 메뉴"
+            aria-haspopup="true"
+            :aria-expanded="showUserMenu"
+            @click="showUserMenu = !showUserMenu"
+          >
+            <Avatar
+              :profile-image-url="profile.profile?.profile_image_url"
+              :nickname="profile.profile?.nickname ?? ''"
+              size="sm"
+            />
+          </button>
+          <HeaderUserDropdown
+            :open="showUserMenu"
+            :user-type-label="userTypeLabel"
+            :nickname="profile.profile?.nickname ?? '—'"
+            :show-admin="!isAdminRoute"
+            @close="showUserMenu = false"
+            @admin="router.push('/admin')"
+            @sign-out="auth.signOut()"
+          />
+        </div>
       </template>
       <template v-else>
         <button type="button" class="btn btn-primary" @click="emit('open-login')">로그인</button>
@@ -71,8 +94,10 @@ import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
-import { useProfileStore } from '@/stores/profile'
 import ProfileInfoModal from '@/components/ProfileInfoModal.vue'
+import HeaderUserDropdown from '@/components/HeaderUserDropdown.vue'
+import Avatar from '@/components/Avatar.vue'
+import { useProfileStore, getUserTypeLabel } from '@/stores/profile'
 import { mdiClose, mdiChevronLeft } from '@mdi/js'
 
 const emit = defineEmits<{ 'open-login': [] }>()
@@ -83,8 +108,11 @@ const auth = useAuthStore()
 const myNeighborhood = useMyNeighborhoodStore()
 const profile = useProfileStore()
 const showProfileModal = ref(false)
+const showUserMenu = ref(false)
 
 const isAdminRoute = computed(() => /^\/admin/.test(route.path))
+
+const userTypeLabel = computed(() => getUserTypeLabel(profile.profile?.user_type))
 
 function goBack() {
   router.back()
@@ -124,5 +152,21 @@ async function handleLocationClick() {
       text-decoration: underline;
     }
   }
+}
+
+/* 사용자 아바타 + 드롭다운 */
+.header-user-wrap {
+  position: relative;
+}
+
+.header-avatar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
 }
 </style>

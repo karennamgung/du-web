@@ -152,6 +152,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/Icon.vue'
+import { getUserTypeLabel } from '@/stores/profile'
 import { mdiPencilOutline, mdiClose, mdiCheck, mdiTrashCanOutline } from '@mdi/js'
 
 const props = withDefaults(
@@ -198,9 +199,8 @@ const emit = defineEmits<{
 
 /** 카드 최상단 라벨: 학부모 / 학생 / 첫째 아이·둘째 아이·셋째 아이 */
 const cardTitle = computed(() => {
-  if (props.variant === 'parent') return '학부모'
-  if (props.variant === 'student') return '학생'
-  return props.orderLabel ?? ''
+  if (props.variant === 'child') return props.orderLabel ?? ''
+  return getUserTypeLabel(props.variant as 'parent' | 'student')
 })
 
 interface CardRowBase {

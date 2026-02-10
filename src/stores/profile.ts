@@ -22,6 +22,18 @@ export interface Profile {
   updated_at: string
 }
 
+/** user_type 표시 라벨 (학부모 / 학생 / 학원) */
+export const USER_TYPE_LABELS: Record<Profile['user_type'], string> = {
+  parent: '학부모',
+  student: '학생',
+  academy: '학원',
+}
+
+export function getUserTypeLabel(userType: Profile['user_type'] | null | undefined): string {
+  if (!userType) return '—'
+  return USER_TYPE_LABELS[userType] ?? '—'
+}
+
 export const useProfileStore = defineStore('profile', () => {
   const auth = useAuthStore()
   const profile = ref<Profile | null>(null)

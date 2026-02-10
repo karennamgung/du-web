@@ -30,9 +30,11 @@
             :class="{ selected: selectedAvatarIndex === index }"
             @click="selectAvatar(index)"
           >
-            <div class="avatar-circle" :style="{ backgroundColor: avatar.color }">
-              {{ avatar.letter }}
-            </div>
+            <Avatar
+              :profile-image-url="toDefaultAvatarUrl(avatar.letter)"
+              nickname=""
+              size="md"
+            />
             <span v-if="selectedAvatarIndex === index" class="avatar-check">✓</span>
           </button>
         </div>
@@ -68,6 +70,7 @@
 import { ref, computed, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import Avatar from '@/components/Avatar.vue'
 import {
   DEFAULT_AVATARS,
   isDefaultAvatarUrl,
@@ -292,22 +295,8 @@ watch(profileImageUrl, () => {
   padding: 0;
 }
 
-.avatar-circle {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border: 2px solid transparent;
-  transition: all v.$transition-base;
-}
-
-.avatar-option.selected .avatar-circle {
-  border-color: v.$color-primary;
+.avatar-option.selected :deep(.avatar) {
+  border: 2px solid v.$color-primary;
   box-shadow: 0 0 0 2px v.$color-primary-dimmer;
 }
 

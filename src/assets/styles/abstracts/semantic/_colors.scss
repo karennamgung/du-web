@@ -1,6 +1,6 @@
 // =============================================================================
 // Semantic: 시멘틱 컬러 (primitives 참조)
-// 계층: dimmer – dim – base – strong – stronger
+// 계층: dimmer – dim – base – strong – stronger – strongest
 // =============================================================================
 
 @use 'sass:color';
@@ -24,12 +24,13 @@ $color-text-base: c.$gray-900;
 $color-text-inverse: c.$white;
 
 // ---- BG ----
-// dimmer < dim < base < strong < stronger 순서로 점점 어두워짐
+// dimmer < dim < base < strong < stronger < strongest 순서로 점점 어두워짐
 $color-bg-dimmer: c.$gray-100;  // 가장 밝음
 $color-bg-dim: c.$gray-200;
 $color-bg-base: c.$white;
 $color-bg-strong: c.$gray-500;
-$color-bg-stronger: c.$gray-700;  // 가장 어두움
+$color-bg-stronger: c.$gray-700;
+$color-bg-strongest: c.$gray-900;  // 가장 어두움
 $color-bg-hover: $color-bg-dim;
 $color-bg-focus: $color-primary;
 

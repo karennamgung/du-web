@@ -101,32 +101,49 @@ function handleCancel() {
   justify-content: center;
   z-index: 1000;
   padding: v.$space-lg;
+
+  @media (max-width: 768px) {
+    align-items: flex-end;
+    padding: 0;
+  }
 }
 
 .modal-content {
+  display: flex;
+  flex-direction: column;
   background-color: v.$color-bg-base;
   border-radius: v.$radius-lg;
   max-width: 500px;
   width: 100%;
   max-height: 90vh;
-  overflow: auto;
+  overflow: hidden;
   box-shadow: v.$shadow-lg;
   transition: transform v.$transition-base;
+
+  @media (max-width: 768px) {
+    max-height: 85vh;
+    border-radius: v.$radius-lg v.$radius-lg 0 0;
+    max-width: none;
+  }
 }
 
 .modal-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: v.$space-lg;
-
 }
 
 .modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: v.$space-lg;
 }
 
 .modal-footer {
+  flex-shrink: 0;
   display: flex;
   gap: v.$space-sm;
   justify-content: flex-end;
@@ -152,5 +169,17 @@ function handleCancel() {
 .modal-enter-from .modal-content,
 .modal-leave-to .modal-content {
   transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .modal-enter-from .modal-content,
+  .modal-leave-to .modal-content {
+    transform: translateY(100%);
+  }
+
+  .modal-enter-to .modal-content,
+  .modal-leave-from .modal-content {
+    transform: translateY(0);
+  }
 }
 </style>
