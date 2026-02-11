@@ -63,8 +63,8 @@
         <p class="type-size-sm type-weight-medium">리뷰 {{ commentCount }}</p>
       </div>
       <div v-if="(displayedSubjects.length || displayedAgeGroups.length)" class="map-academy-card-tags">
-        <TagChip v-for="s in displayedSubjects" :key="'s-' + s" :label="s" type="subject" size="small" />
-        <TagChip v-for="a in displayedAgeGroups" :key="'a-' + a" :label="a" type="age" size="small" />
+        <Tag v-for="s in displayedSubjects" :key="'s-' + s" :label="s" variant="primary" size="small" />
+        <Tag v-for="a in displayedAgeGroups" :key="'a-' + a" :label="a" variant="secondary" size="small" />
       </div>
     </div>
   </div>
@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/shared/Icon.vue'
-import TagChip from '@/components/shared/TagChip.vue'
+import Tag from '@/components/shared/Tag.vue'
 import { mdiHeart, mdiHeartOutline, mdiArrowLeftRight, mdiCar, mdiWalk } from '@mdi/js'
 import type { Academy } from '@/types/academy'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
@@ -149,7 +149,7 @@ const displayedAgeGroups = computed(() => {
   align-items: stretch;
 
   @media (min-width: 768px) {
-    padding: v.$space-md;
+    padding: v.$space-md v.$space-xs;
   }
 }
 
@@ -167,8 +167,8 @@ const displayedAgeGroups = computed(() => {
 .map-academy-card-thumb-wrap {
   position: relative;
   flex-shrink: 0;
-  width: 9rem;
-  height: 9rem;
+  width: 6rem;
+  height: 8.5rem;
   overflow: hidden;
   border-radius: v.$radius-lg;
 

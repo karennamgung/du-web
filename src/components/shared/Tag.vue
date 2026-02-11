@@ -1,22 +1,25 @@
 <template>
-  <small 
-    class="tag" 
+  <p
+    class="tag"
     :class="[
       size === 'small' ? 'tag-small' : '',
-      (type ?? 'subject') === 'subject' ? 'tag-primary' : 'tag-secondary'
+      `tag-${variant}`
     ]"
   >
-    {{ label }}
-  </small>
+  {{ label }}
+</p>
 </template>
 
 <script setup lang="ts">
 withDefaults(
   defineProps<{
     label: string
-    type?: 'subject' | 'age'
+    variant?: 'primary' | 'secondary' | 'gray'
     size?: 'base' | 'small'
   }>(),
-  { type: 'subject' }
+  { variant: 'primary', size: 'base' }
 )
 </script>
+
+<style scoped>
+</style>

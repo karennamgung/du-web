@@ -286,7 +286,7 @@ defineExpose({
   justify-content: space-between;
   flex-wrap: wrap;
   gap: v.$space-sm;
-  padding: v.$space-lg 0;
+  padding: v.$space-lg 0 v.$space-sm 0;
 
   &.map-academy-list-header-clickable {
     cursor: pointer;
@@ -320,6 +320,7 @@ defineExpose({
   min-height: 0;
   min-width: 0;
   margin: 0;
+  padding-top: v.$space-sm;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;

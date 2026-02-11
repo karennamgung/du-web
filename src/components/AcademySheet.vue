@@ -47,7 +47,7 @@
                 <p class="sheet-list-label color-dim">과목</p>
                 <p class="sheet-list-value-tags">
                   <template v-if="displayedSubjects.length">
-                    <TagChip v-for="s in displayedSubjects" :key="s" :label="s" type="subject" />
+                    <Tag v-for="s in displayedSubjects" :key="s" :label="s" variant="primary" />
                   </template>
                   <template v-else>—</template>
                 </p>
@@ -56,7 +56,7 @@
                 <p class="sheet-list-label color-dim">연령</p>
                 <p class="sheet-list-value-tags">
                   <template v-if="displayedAgeGroups.length">
-                    <TagChip v-for="a in displayedAgeGroups" :key="a" :label="a" type="age" />
+                    <Tag v-for="a in displayedAgeGroups" :key="a" :label="a" variant="secondary" />
                   </template>
                   <template v-else>—</template>
                 </p>
@@ -101,7 +101,7 @@
 import CommentComposer from '@/components/CommentComposer.vue'
 import CommentList from '@/components/CommentList.vue'
 import LoginModal from '@/components/modals/LoginModal.vue'
-import TagChip from '@/components/shared/TagChip.vue'
+import Tag from '@/components/shared/Tag.vue'
 import Icon from '@/components/shared/Icon.vue'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
 import { useFavorites } from '@/composables/useFavorites'

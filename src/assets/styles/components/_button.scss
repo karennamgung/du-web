@@ -131,19 +131,3 @@
     @include m.chip-active;
   }
 }
-
-// ---- Tag (표시용 라벨: 과목/연령 등) ----
-.tag {
-  @include m.tag-base;
-}
-.tag-small {
-  @include m.tag-small;
-}
-.tag-primary {
-  background-color: c.$color-primary-dimmer;
-  color: c.$color-primary;
-}
-.tag-secondary {
-  background-color: c.$color-secondary-dimmer;
-  color: c.$color-secondary;
-}

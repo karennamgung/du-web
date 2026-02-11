@@ -66,10 +66,13 @@
         </template>
       </div>
 
-      <!-- 카드 최상단 라벨: 학부모 / 학생 / 첫째 아이·둘째 아이·셋째 아이 -->
-      <p class="text-caption color-base card-title">
-        {{ cardTitle }}
-      </p>
+      <!-- 카드 최상단 라벨: 학부모·학생=primary, 자녀(첫째·둘째...)=gray -->
+      <Tag
+        :label="cardTitle"
+        :variant="variant === 'child' ? 'gray' : 'primary'"
+        size="small"
+        class="mb-sm"
+      />
 
       <!-- 좌 label / 우 value 또는 input (데이터 기반 렌더) -->
       <template v-if="cardRows.length">
@@ -152,6 +155,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Icon from '@/components/shared/Icon.vue'
+import Tag from '@/components/shared/Tag.vue'
 import { getUserTypeLabel } from '@/stores/profile'
 import { mdiPencilOutline, mdiClose, mdiCheck, mdiTrashCanOutline } from '@mdi/js'
 
@@ -352,9 +356,5 @@ function onContentClick() {
   &:last-child {
     border-bottom: none;
   }
-}
-
-.card-title {
-  margin: 0 0 v.$space-sm 0;
 }
 </style>

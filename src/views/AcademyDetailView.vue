@@ -22,8 +22,8 @@
             <template v-if="academy.address_road">도로명 {{ academy.address_road }}</template>
           </p>
           <div v-if="displayedSubjects.length || displayedAgeGroups.length" class="academy-detail-tags">
-            <TagChip v-for="s in displayedSubjects" :key="'s-' + s" :label="s" type="subject" />
-            <TagChip v-for="a in displayedAgeGroups" :key="'a-' + a" :label="a" type="age" />
+            <Tag v-for="s in displayedSubjects" :key="'s-' + s" :label="s" variant="primary" />
+            <Tag v-for="a in displayedAgeGroups" :key="'a-' + a" :label="a" variant="secondary" />
           </div>
         </div>
         <div class="academy-detail-actions">
@@ -112,7 +112,7 @@ import { useRoute } from 'vue-router'
 import CommentComposer from '@/components/CommentComposer.vue'
 import CommentList from '@/components/CommentList.vue'
 import LoginModal from '@/components/modals/LoginModal.vue'
-import TagChip from '@/components/shared/TagChip.vue'
+import Tag from '@/components/shared/Tag.vue'
 import Icon from '@/components/shared/Icon.vue'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
 import { useFavorites } from '@/composables/useFavorites'

@@ -1,0 +1,25 @@
+// =============================================================================
+// Tag (표시용 라벨) — Chip/버튼과 별개. Tag.vue에서 클래스만 사용
+// =============================================================================
+
+@use '../abstracts/mixins' as m;
+@use '../abstracts/semantic/colors' as c;
+
+.tag {
+  @include m.tag-base;
+}
+.tag-small {
+  @include m.tag-small;
+}
+.tag-primary {
+  background-color: c.$color-primary-dimmer;
+  color: c.$color-primary;
+}
+.tag-secondary {
+  background-color: c.$color-secondary-dimmer;
+  color: c.$color-secondary;
+}
+.tag-gray {
+  background-color: c.$color-bg-dim;
+  color: c.$color-text-dim;
+}
