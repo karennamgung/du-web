@@ -205,21 +205,17 @@
   }
 }
 
-// ---- Tag (표시용 라벨, chip과 구분) ----
+// ---- Tag (표시용 라벨, chip과 구분) — 타이포는 .tag / Tag.vue에서 처리 ----
 @mixin tag-base {
   display: inline-block;
   padding: s.$space-xs s.$space-md;
   border-radius: s.$radius-md;
-  font-size: t.$font-size-sm;
-  font-weight: t.$font-weight-semibold;
 }
 
 @mixin tag-small {
   display: inline-block;
   padding: s.$space-2xs s.$space-xs;
   border-radius: s.$radius-sm;
-  font-size: t.$font-size-xs;
-  font-weight: t.$font-weight-semibold;
 }
 
 // ---- Input ----

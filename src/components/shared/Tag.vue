@@ -2,12 +2,12 @@
   <p
     class="tag"
     :class="[
-      size === 'small' ? 'tag-small' : '',
+      size === 'small' ? 'tag-small type-size-xs' : 'type-size-sm',
       `tag-${variant}`
     ]"
   >
-  {{ label }}
-</p>
+    {{ label }}
+  </p>
 </template>
 
 <script setup lang="ts">
