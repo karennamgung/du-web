@@ -11,15 +11,15 @@
   </Teleport>
   <Transition name="dropdown">
     <div v-if="open" class="header-user-dropdown-panel" role="menu" @click.stop>
-      <div class="header-user-dropdown-info">
-        <p class="header-user-dropdown-type">{{ userTypeLabel }}</p>
-        <p class="header-user-dropdown-nickname">{{ nickname }}</p>
+      <div class="mb-sm pb-sm gap-md header-user-dropdown-info">
+        <Tag :label="userTypeLabel" size="small" variant="primary" class="mb-2xs" />
+        <p class="type-weight-semibold">{{ nickname }}</p>
       </div>
       <div class="header-user-dropdown-actions">
         <button
           v-if="showAdmin"
           type="button"
-          class="header-user-dropdown-action"
+          class="btn-ghost full-width justify-left"
           role="menuitem"
           @click="$emit('admin'); $emit('close')"
         >
@@ -27,7 +27,7 @@
         </button>
         <button
           type="button"
-          class="header-user-dropdown-action"
+          class="btn-ghost full-width justify-left"
           role="menuitem"
           @click="$emit('signOut'); $emit('close')"
         >
@@ -39,6 +39,8 @@
 </template>
 
 <script setup lang="ts">
+import Tag from '@/components/shared/Tag.vue'
+
 defineProps<{
   open: boolean
   userTypeLabel: string
@@ -74,22 +76,8 @@ defineEmits<{
 }
 
 .header-user-dropdown-info {
-  padding-bottom: v.$space-sm;
+  display: flex;
   border-bottom: 1px solid v.$color-border-dim;
-  margin-bottom: v.$space-sm;
-
-  .header-user-dropdown-type {
-    margin: 0;
-    font-size: 0.75rem;
-    color: v.$color-text-dim;
-  }
-
-  .header-user-dropdown-nickname {
-    margin: 0.25rem 0 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: v.$color-text-base;
-  }
 }
 
 .header-user-dropdown-actions {
@@ -102,7 +90,6 @@ defineEmits<{
   display: block;
   width: 100%;
   padding: v.$space-sm v.$space-md;
-  font-size: 0.875rem;
   text-align: left;
   border: none;
   border-radius: v.$radius-sm;
