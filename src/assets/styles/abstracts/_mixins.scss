@@ -196,9 +196,12 @@
 }
 
 @mixin chip-hover {
-  &:hover:not(.chip-active) {
-    box-shadow: inset 0 0 0 1px sc.$color-border-stronger;
-    color: sc.$color-text-base;
+  /* 터치/태블릿에서 탭 후 호버 잔상 방지: 호버 가능한 기기(마우스)에서만 호버 스타일 적용 */
+  @media (hover: hover) {
+    &:hover:not(.chip-active) {
+      box-shadow: inset 0 0 0 1px sc.$color-border-stronger;
+      color: sc.$color-text-base;
+    }
   }
 }
 

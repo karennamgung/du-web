@@ -68,8 +68,8 @@ const avatarLetter = computed(() => {
 }
 
 .avatar--sm {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 .avatar--md {
@@ -97,6 +97,5 @@ const avatarLetter = computed(() => {
   margin: 0;
   background-color: v.$color-bg-strongest;
   color: v.$color-text-inverse;
-  line-height: 1;
 }
 </style>
