@@ -200,12 +200,10 @@ defineExpose({
 .map-academy-list {
   flex: 1;
   min-height: 0;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   background: v.$color-bg-base;
   overflow: hidden;
-  overscroll-behavior: none;
   box-sizing: border-box;
   padding: 0 v.$space-lg;
 
