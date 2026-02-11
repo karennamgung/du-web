@@ -37,7 +37,7 @@ onMounted(async () => {
     await profile.loadProfile()
     if (!profile.profile || !profile.isOnboardingCompleted) {
       if (route.name !== 'Onboarding') {
-        router.push('/onboarding')
+        router.replace('/onboarding')
       }
     }
   }
@@ -48,7 +48,7 @@ onMounted(async () => {
       profile.loadProfile().then(() => {
         if (!profile.profile || !profile.isOnboardingCompleted) {
           if (route.name !== 'Onboarding') {
-            router.push('/onboarding')
+            router.replace('/onboarding')
           }
         }
       })

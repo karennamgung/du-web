@@ -87,7 +87,7 @@ async function signIn() {
     await profile.loadProfile()
     if (!profile.profile || !profile.isOnboardingCompleted) {
       close()
-      router.push('/onboarding')
+      router.replace('/onboarding')
       return
     }
     close()

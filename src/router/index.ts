@@ -82,7 +82,7 @@ router.beforeEach(async (to, _from, next) => {
         // 온보딩 페이지가 아닌 경우에만 리디렉션
         if (to.name !== 'Onboarding') {
           console.log('[Router Guard] 온보딩 페이지로 리디렉션')
-          next('/onboarding')
+          next({ path: '/onboarding', replace: true })
           return
         }
       } else {
@@ -103,7 +103,7 @@ router.beforeEach(async (to, _from, next) => {
       // 온보딩 페이지가 아니면 온보딩으로 리디렉션
       if (to.name !== 'Onboarding') {
         console.log('[Router Guard] 에러 발생, 온보딩으로 리디렉션')
-        next('/onboarding')
+        next({ path: '/onboarding', replace: true })
         return
       }
     }
