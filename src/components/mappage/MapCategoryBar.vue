@@ -121,13 +121,12 @@ const subjectOptions = computed(() => {
 .map-category-row {
   display: flex;
   align-items: center;
-  gap: v.$space-md;
+  gap: v.$space-xl;
   min-width: 0;
 }
 
 .map-category-label {
   flex-shrink: 0;
-  min-width: 4.5rem;
 }
 
 .map-category-chips {
