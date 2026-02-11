@@ -51,7 +51,7 @@
         <button
           v-if="!showAddChildForm"
           type="button"
-          class="btn btn-outline w-full"
+          class="btn btn-gray w-full"
           @click="openAddChildForm"
         >
           <Icon class="icon-sm" :path="mdiPlus" />
