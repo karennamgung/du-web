@@ -10,13 +10,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import LoginModal from '@/components/modals/LoginModal.vue'
 import Header from '@/components/shared/Header.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
 import { useProfileStore } from '@/stores/profile'
 
+const router = useRouter()
 const auth = useAuthStore()
 const myNeighborhood = useMyNeighborhoodStore()
 const profile = useProfileStore()
@@ -30,16 +31,27 @@ const isOnboardingPage = computed(() => route.name === 'Onboarding')
 onMounted(async () => {
   await auth.init()
   myNeighborhood.restoreFromStorage()
-  
-  // 인증된 사용자의 경우 프로필 로드
+
+  // 인증된 사용자: 프로필 로드 후 온보딩 미완료면 무조건 온보딩으로 (가입 후 한 번도 안 한 경우)
   if (auth.isAuthenticated) {
     await profile.loadProfile()
+    if (!profile.profile || !profile.isOnboardingCompleted) {
+      if (route.name !== 'Onboarding') {
+        router.push('/onboarding')
+      }
+    }
   }
-  
-  // 인증 상태 변경 감지
+
+  // 인증 상태 변경 감지 (OAuth 복귀 등): 프로필 로드 후 온보딩 미완료면 온보딩으로
   auth.$subscribe(() => {
     if (auth.isAuthenticated) {
-      profile.loadProfile()
+      profile.loadProfile().then(() => {
+        if (!profile.profile || !profile.isOnboardingCompleted) {
+          if (route.name !== 'Onboarding') {
+            router.push('/onboarding')
+          }
+        }
+      })
     } else {
       profile.profile = null
       profile.children = []

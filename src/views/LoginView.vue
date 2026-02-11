@@ -37,8 +37,10 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { useProfileStore } from '@/stores/profile'
 
 interface Props {
   academyId?: string | null
@@ -49,7 +51,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const router = useRouter()
 const auth = useAuthStore()
+const profile = useProfileStore()
 const email = ref('')
 const nickname = ref('')
 const password = ref('')
@@ -79,6 +83,13 @@ async function signIn() {
   try {
     const { error } = await supabase.auth.signInWithPassword({ email: email.value, password: password.value })
     if (error) throw error
+    // Supabase에 프로필 없거나 온보딩 미완료면 로그인 직후 온보딩으로
+    await profile.loadProfile()
+    if (!profile.profile || !profile.isOnboardingCompleted) {
+      close()
+      router.push('/onboarding')
+      return
+    }
     close()
   } catch (e) {
     authError.value = e instanceof Error ? e.message : '로그인에 실패했습니다.'
