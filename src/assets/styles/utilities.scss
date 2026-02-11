@@ -91,7 +91,7 @@ h1 {
 h2 {
   font-size: t.$font-size-lg;
   font-weight: t.$font-weight-semibold;
-  line-height: t.$line-height-tight;
+  line-height: t.$line-height-relaxed;
   color: c.$color-text-base;
   margin: 0;
 }

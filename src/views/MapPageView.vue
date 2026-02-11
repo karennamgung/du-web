@@ -208,11 +208,15 @@ function checkMobile() {
   if (isMobile.value) {
     if (bottomSheetHeight.value === 0) {
       const defaultPx = getDefaultSheetHeightPx()
-      // 모바일: 카드가 보이도록 최소 260px 보장 (MIN_HEIGHT만 되면 카드 영역이 숨겨짐)
-      bottomSheetHeight.value = Math.max(defaultPx, 260)
+      const maxPx = getMaxSheetHeightPx()
+      // 모바일: 카드가 보이도록 최소 260px 보장. 초기에는 maxPx로 두지 않아 핸들이 보이게 함
+      let initial = Math.max(defaultPx, 260)
+      if (initial >= maxPx) initial = defaultPx
+      bottomSheetHeight.value = Math.min(initial, maxPx)
+    } else {
+      const maxPx = getMaxSheetHeightPx()
+      if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
     }
-    const maxPx = getMaxSheetHeightPx()
-    if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
   } else if (!isMobile.value && wasMobile) {
     // 모바일에서 데스크톱으로 전환 시 높이 초기화
     bottomSheetHeight.value = 0
@@ -1253,13 +1257,14 @@ onMounted(async () => {
     loading.value = false
     await nextTick()
     await nextTick() // 컴포넌트 마운트를 위한 추가 대기
-    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이 재계산 (초기 로딩 시 지도·카드 보이도록)
+    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이 재계산. 초기에는 maxPx로 두지 않아 핸들이 보이게 함
     if (isMobile.value) {
       requestAnimationFrame(() => {
         const defaultPx = getDefaultSheetHeightPx()
-        bottomSheetHeight.value = Math.max(defaultPx, 260)
         const maxPx = getMaxSheetHeightPx()
-        if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
+        let initial = Math.max(defaultPx, 260)
+        if (initial >= maxPx) initial = defaultPx
+        bottomSheetHeight.value = Math.min(initial, maxPx)
       })
     }
     // mapContainerRef가 준비될 때까지 최대 20번 시도 (약 1초)

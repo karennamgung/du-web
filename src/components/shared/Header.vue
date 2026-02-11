@@ -23,6 +23,7 @@
             @click="showProfileModal = true"
           >
             <h4>{{ profile.displayName }}</h4>
+            <Icon class="icon-xs color-dim" :path="mdiChevronDown" />
           </button>
         </template>
 
@@ -98,7 +99,7 @@ import ProfileInfoModal from '@/components/modals/ProfileInfoModal.vue'
 import HeaderUserDropdown from '@/components/HeaderUserDropdown.vue'
 import Avatar from './Avatar.vue'
 import { useProfileStore, getUserTypeLabel } from '@/stores/profile'
-import { mdiClose, mdiChevronLeft } from '@mdi/js'
+import { mdiClose, mdiChevronLeft, mdiChevronDown } from '@mdi/js'
 
 const emit = defineEmits<{ 'open-login': [] }>()
 
@@ -134,6 +135,9 @@ async function handleLocationClick() {
 }
 
 .name-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   background: none;
   border: none;
   padding: 0;
