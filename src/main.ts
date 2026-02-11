@@ -4,6 +4,11 @@ import App from './App.vue'
 import router from './router'
 import '@/assets/styles/utilities.scss'
 
+// Android: line-height 내 텍스트가 아래로 치우쳐 보이는 폰트 메트릭 보정 (utilities.scss --leading-trim-y)
+if (typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)) {
+  document.documentElement.style.setProperty('--leading-trim-y', '-0.02em')
+}
+
 const app = createApp(App)
 app.config.errorHandler = (err, instance, info) => {
   console.error('[DU]', info, err)

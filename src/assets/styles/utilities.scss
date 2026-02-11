@@ -77,6 +77,14 @@ h1, h2, h3, h4, h5, h6, p {
   margin-inline-end: 0;
   font-weight: normal;
   unicode-bidi: normal;
+  /* Android 등에서 line-height 내 수직 치우침 보정: JS에서 html에 --leading-trim-y: -0.02em 설정 시 적용 */
+  transform: translateY(var(--leading-trim-y, 0));
+}
+@supports (text-box-trim: trim-both) {
+  h1, h2, h3, h4, h5, h6, p {
+    text-box-trim: trim-both;
+    transform: none; /* 지원 시 보정 불필요 */
+  }
 }
 
 // ---- HTML 요소 base (h1~h6, p) — 전역 1회만, index에서 forward 안 함 ----
