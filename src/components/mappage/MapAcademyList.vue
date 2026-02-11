@@ -209,13 +209,14 @@ defineExpose({
     padding-left: 2rem;
   }
 
-  // 모바일: 지도 위에 오버레이되는 바텀 시트 (떠 있는 느낌을 위한 그림자)
+  // 모바일: 지도 위에 오버레이되는 바텀 시트 (떠 있는 느낌을 위한 그림자). translateZ(0)으로 레이어 분리해 로딩 직후에도 페인트되게 함
   @media (max-width: 767px) {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: v.$z-card;
+    transform: translateZ(0);
     border-top-left-radius: v.$radius-xl;
     border-top-right-radius: v.$radius-xl;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
