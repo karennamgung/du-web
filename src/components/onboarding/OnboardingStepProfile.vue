@@ -221,8 +221,6 @@ watch(profileImageUrl, () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .onboarding-step {
   display: flex;
   flex-direction: column;

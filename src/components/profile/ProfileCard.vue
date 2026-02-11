@@ -303,8 +303,6 @@ function onContentClick() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .profile-card {
   display: flex;
   align-items: flex-start;

@@ -61,8 +61,6 @@ onMounted(async () => {
 </script>
 
 <style lang="scss">
-@use '@/assets/styles/index' as v;
-
 html,
 body {
   height: 100%;

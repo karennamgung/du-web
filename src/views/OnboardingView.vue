@@ -245,8 +245,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .onboarding-container {
   display: flex;
   flex-direction: column;

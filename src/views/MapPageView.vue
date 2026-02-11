@@ -1331,7 +1331,6 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 @use 'sass:color';
-@use '@/assets/styles/index' as v;
 
 .map-page {
   position: relative;
@@ -1425,31 +1424,6 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: v.$space-xl;
   text-align: center;
-}
-</style>
-
-<style lang="scss">
-@use '@/assets/styles/index' as v;
-
-:root {
-  --color-primary: #{v.$color-primary};
-  --color-bg-dimmer: #{v.$color-bg-dimmer};
-  --color-text-base: #{v.$color-text-base};
-
-  --color-text-inverse: #{v.$color-text-inverse};
-  --color-text-dim: #{v.$color-text-dim};
-  --color-border-dim: #{v.$color-border-dim};
-  --color-border-strong: #{v.$color-border-strong};
-  --color-border-stronger: #{v.$color-border-stronger};
-  --color-bg-strong: #{v.$color-bg-strong};
-  --color-border-focus: #{v.$color-border-focus};
-  --color-bg-focus: #{v.$color-bg-focus};
-  --color-bg-base: #{v.$color-bg-base};
-
-  --z-canvas: #{v.$z-canvas};
-  --z-card: #{v.$z-card};
-  --z-toast: #{v.$z-toast};
-  --z-floating: #{v.$z-floating};
 }
 </style>
 

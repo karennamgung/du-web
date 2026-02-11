@@ -54,8 +54,6 @@ defineEmits<{
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .header-user-dropdown-overlay {
   position: fixed;
   inset: 0;

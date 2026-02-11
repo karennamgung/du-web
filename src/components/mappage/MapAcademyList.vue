@@ -195,8 +195,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .map-academy-list {
   flex: 1;
   min-height: 0;

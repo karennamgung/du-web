@@ -1,0 +1,25 @@
+// =============================================================================
+// :root CSS Custom Properties — JS에서 읽기용 (지도 마커 등)
+// MapPageView에서 getComputedStyle(document.documentElement).getPropertyValue() 로 사용
+// =============================================================================
+
+@use '../index' as v;
+
+:root {
+  --color-primary: #{v.$color-primary};
+  --color-bg-dimmer: #{v.$color-bg-dimmer};
+  --color-text-base: #{v.$color-text-base};
+  --color-text-inverse: #{v.$color-text-inverse};
+  --color-text-dim: #{v.$color-text-dim};
+  --color-border-dim: #{v.$color-border-dim};
+  --color-border-strong: #{v.$color-border-strong};
+  --color-border-stronger: #{v.$color-border-stronger};
+  --color-bg-strong: #{v.$color-bg-strong};
+  --color-border-focus: #{v.$color-border-focus};
+  --color-bg-focus: #{v.$color-bg-focus};
+  --color-bg-base: #{v.$color-bg-base};
+  --z-canvas: #{v.$z-canvas};
+  --z-card: #{v.$z-card};
+  --z-toast: #{v.$z-toast};
+  --z-floating: #{v.$z-floating};
+}

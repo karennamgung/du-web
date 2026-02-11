@@ -55,8 +55,6 @@ const avatarLetter = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .avatar {
   display: flex;
   align-items: center;

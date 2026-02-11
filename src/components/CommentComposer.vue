@@ -73,8 +73,6 @@ async function submit() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .comment-composer {
   margin-top: v.$space-lg;
   padding-top: v.$space-lg;

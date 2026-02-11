@@ -211,7 +211,6 @@ watch(
 
 <style lang="scss" scoped>
 @use 'sass:color';
-@use '@/assets/styles/index' as v;
 
 .sheet-backdrop {
   position: fixed;

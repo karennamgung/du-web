@@ -114,10 +114,6 @@ const displayedAgeGroups = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-@use '@/assets/styles/abstracts/primitives/typography' as t;
-@use '@/assets/styles/abstracts/primitives/effects' as e;
-
 .map-academy-card {
   display: flex;
   flex-direction: row;
@@ -202,7 +198,7 @@ const displayedAgeGroups = computed(() => {
   object-fit: cover;
   border-radius: v.$radius-lg;
   background: v.$color-bg-dimmer;
-  transition: transform e.$transition-base;
+  transition: transform v.$transition-base;
   transform: scale(1);
   
   &.map-academy-card-thumb-placeholder {

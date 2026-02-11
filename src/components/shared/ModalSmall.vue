@@ -87,8 +87,6 @@ function handleCancel() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .modal-overlay {
   position: fixed;
   top: 0;

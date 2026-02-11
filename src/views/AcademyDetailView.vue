@@ -239,8 +239,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/index' as v;
-
 .academy-detail {
   padding: v.$space-xl v.$space-lg v.$space-2xl;
   max-width: 72rem;

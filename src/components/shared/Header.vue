@@ -125,8 +125,6 @@ async function handleLocationClick() {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 /* 지도 페이지(/)일 때 태블릿·데스크톱에서 헤더 좌우 2rem */
 .header-px-2rem {
   @media (min-width: 768px) {
@@ -141,17 +139,6 @@ async function handleLocationClick() {
   padding: 0;
   cursor: pointer;
   text-align: left;
-
-  h4 {
-    margin: 0;
-    color: v.$color-primary;
-    transition: color v.$transition-fast;
-
-    &:hover {
-      color: v.$color-primary-strong;
-      text-decoration: underline;
-    }
-  }
 }
 
 /* 사용자 아바타 + 드롭다운 */

@@ -4,6 +4,7 @@
 // 색: color-* (텍스트 색), bg-* (배경)
 // =============================================================================
 
+@use 'abstracts/root-vars';
 @use 'abstracts/semantic/typography';
 @use 'abstracts/primitives/typography' as t;
 @use 'abstracts/primitives/spacing' as s;
@@ -14,6 +15,76 @@
 @use 'components/button';
 @use 'components/icon';
 @use 'components/input';
+
+// =============================================================================
+// CSS Reset — User Agent 기본값을 초기화, 그 위에 우리 스타일만 적용
+// =============================================================================
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+// ---- HTML 요소 base (h1~h6, p) — 전역 1회만, index에서 forward 안 함 ----
+h1 {
+  font-size: t.$font-size-2xl;
+  font-weight: t.$font-weight-bold;
+  line-height: t.$line-height-tight;
+  color: c.$color-text-base;
+  margin: 0;
+}
+h2 {
+  font-size: t.$font-size-lg;
+  font-weight: t.$font-weight-semibold;
+  line-height: t.$line-height-tight;
+  color: c.$color-text-base;
+  margin: 0;
+}
+h3, h4 {
+  font-size: t.$font-size-md;
+  font-weight: t.$font-weight-semibold;
+  line-height: t.$line-height-relaxed;
+  color: c.$color-text-base;
+  margin: 0;
+}
+h5, h6 {
+  font-size: t.$font-size-sm;
+  font-weight: t.$font-weight-semibold;
+  line-height: t.$line-height-relaxed;
+  color: c.$color-text-base;
+  margin: 0;
+}
+p {
+  font-size: t.$font-size-base;
+  font-weight: t.$font-weight-normal;
+  line-height: t.$line-height-relaxed;
+  color: c.$color-text-base;
+  margin: 0;
+}
 
 // ---- Type (타이포 통합: size / weight / leading) ----
 // !important로 base 스타일(h1~h6, p)을 덮어씀

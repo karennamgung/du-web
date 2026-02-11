@@ -76,8 +76,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .map-container-wrapper {
   position: relative;
   width: 100%;

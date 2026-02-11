@@ -252,8 +252,6 @@ defineExpose({
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .comment-list {
   margin-top: v.$space-xl;
   padding-top: v.$space-lg;

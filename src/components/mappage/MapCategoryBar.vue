@@ -104,8 +104,6 @@ const subjectOptions = computed(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .map-category-bar {
   flex-shrink: 0;
   display: flex;

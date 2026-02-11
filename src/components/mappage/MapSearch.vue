@@ -96,8 +96,6 @@ function selectSuggestion(academy: Academy) {
 </script>
 
 <style lang="scss" scoped>
-@use '@/assets/styles/index' as v;
-
 .map-search-wrap {
   position: relative;
   flex: 1;
