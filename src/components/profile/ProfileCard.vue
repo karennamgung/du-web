@@ -331,7 +331,7 @@ function onContentClick() {
   display: flex;
   align-items: flex-start;
   gap: v.$space-md;
-  padding: v.$space-lg;
+  padding: 0 0 0 v.$space-3xl;
 
   text-align: left;
 

@@ -7,7 +7,10 @@
 @use '../abstracts/primitives/typography' as t;
 
 .tag {
-  @include m.tag-base; /* p 기본 타이포 + semibold */
+  @include m.tag-base;
+  font-weight: t.$font-weight-semibold;
+  line-height: t.$line-height-relaxed;
+  text-align: left;
 }
 
 .tag-small {
