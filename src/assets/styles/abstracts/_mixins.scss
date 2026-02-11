@@ -210,10 +210,10 @@
   display: inline-block;
   padding: s.$space-xs s.$space-md;
   border-radius: s.$radius-md;
+  font-weight: t.$font-weight-semibold;
 }
 
 @mixin tag-small {
-  display: inline-block;
   padding: s.$space-2xs s.$space-xs;
   border-radius: s.$radius-sm;
 }

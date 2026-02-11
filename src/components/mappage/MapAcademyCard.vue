@@ -6,7 +6,7 @@
     class="map-academy-card"
     :class="{
       'map-academy-card-active': isActive,
-      'map-academy-card-search-highlight': isSearchHighlight
+      'map-academy-card-search-highlight': isSearchHighlight,
     }"
     @click="$emit('click', academy)"
     @keydown.enter="$emit('click', academy)"
@@ -21,7 +21,10 @@
         :alt="academy.name"
         class="map-academy-card-thumb"
       />
-      <div v-else class="map-academy-card-thumb map-academy-card-thumb-placeholder"></div>
+      <div
+        v-else
+        class="map-academy-card-thumb map-academy-card-thumb-placeholder"
+      ></div>
       <div class="map-academy-card-thumb-actions">
         <button
           type="button"
@@ -39,10 +42,15 @@
       <div class="map-academy-card-head">
         <h4 class="map-academy-card-name">{{ academy.name }}</h4>
       </div>
-      <p v-if="academy.address || academy.address_road" class="map-academy-card-address type-size-sm type-weight-medium color-dim type-leading-normal">
+      <p
+        v-if="academy.address || academy.address_road"
+        class="map-academy-card-address type-size-sm type-weight-medium color-dim type-leading-normal"
+      >
         <template v-if="academy.address">지번 {{ academy.address }}</template>
         <template v-if="academy.address && academy.address_road"> · </template>
-        <template v-if="academy.address_road">도로명 {{ academy.address_road }}</template>
+        <template v-if="academy.address_road"
+          >도로명 {{ academy.address_road }}</template
+        >
       </p>
       <div class="map-academy-card-meta">
         <template v-if="distanceInfo">
@@ -54,63 +62,92 @@
             <template v-if="distanceInfo.walkingTime < 15">
               도보 {{ distanceInfo.walkingTime }}분
             </template>
-            <template v-else>
-              차량 {{ distanceInfo.drivingTime }}분
-            </template>
+            <template v-else> 차량 {{ distanceInfo.drivingTime }}분 </template>
           </p>
           <span class="map-academy-card-meta-divider color-dimmer">·</span>
         </template>
         <p class="type-size-sm type-weight-medium">리뷰 {{ commentCount }}</p>
       </div>
-      <div v-if="(displayedSubjects.length || displayedAgeGroups.length)" class="map-academy-card-tags">
-        <Tag v-for="s in displayedSubjects" :key="'s-' + s" :label="s" variant="primary" size="small" />
-        <Tag v-for="a in displayedAgeGroups" :key="'a-' + a" :label="a" variant="secondary" size="small" />
+      <div
+        v-if="displayedSubjects.length || displayedAgeGroups.length"
+        class="map-academy-card-tags"
+      >
+        <Tag
+          v-for="s in displayedSubjects"
+          :key="'s-' + s"
+          :label="s"
+          variant="primary"
+          size="small"
+        />
+        <Tag
+          v-for="a in displayedAgeGroups"
+          :key="'a-' + a"
+          :label="a"
+          variant="secondary"
+          size="small"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import Icon from '@/components/shared/Icon.vue'
-import Tag from '@/components/shared/Tag.vue'
-import { mdiHeart, mdiHeartOutline, mdiArrowLeftRight, mdiCar, mdiWalk } from '@mdi/js'
-import type { Academy } from '@/types/academy'
-import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
+import { computed } from "vue";
+import Icon from "@/components/shared/Icon.vue";
+import Tag from "@/components/shared/Tag.vue";
+import {
+  mdiHeart,
+  mdiHeartOutline,
+  mdiArrowLeftRight,
+  mdiCar,
+  mdiWalk,
+} from "@mdi/js";
+import type { Academy } from "@/types/academy";
+import {
+  getDisplaySubjects,
+  isValidAgeGroup,
+  AGE_GROUP_ORDER,
+} from "@/constants/subjectTypes";
 
 const props = defineProps<{
-  academy: Academy
-  isActive: boolean
-  isSearchHighlight: boolean
-  isFavorited: boolean
-  favoriteLoading: boolean
-  commentCount: number
+  academy: Academy;
+  isActive: boolean;
+  isSearchHighlight: boolean;
+  isFavorited: boolean;
+  favoriteLoading: boolean;
+  commentCount: number;
   /** 현재 위치에서의 거리 및 소요 시간 정보 */
-  distanceInfo: { distance: string; drivingTime: number; walkingTime: number } | null
-}>()
+  distanceInfo: {
+    distance: string;
+    drivingTime: number;
+    walkingTime: number;
+  } | null;
+}>();
 
 defineEmits<{
-  click: [academy: Academy]
-  favoriteClick: [academyId: string]
-  mouseenter: [academy: Academy]
-  mouseleave: []
-}>()
+  click: [academy: Academy];
+  favoriteClick: [academyId: string];
+  mouseenter: [academy: Academy];
+  mouseleave: [];
+}>();
 
 /** 카드에 표시할 과목 태그 (subjectTypes 통합명·중복 제거·순서) */
-const displayedSubjects = computed(() => getDisplaySubjects(props.academy.subjects))
+const displayedSubjects = computed(() =>
+  getDisplaySubjects(props.academy.subjects),
+);
 
 /** 유효한 연령 그룹만 필터링하고 표준 순서로 정렬하여 표시 */
 const displayedAgeGroups = computed(() => {
-  const validGroups = (props.academy.age_group ?? []).filter(isValidAgeGroup)
+  const validGroups = (props.academy.age_group ?? []).filter(isValidAgeGroup);
   return validGroups.sort((a, b) => {
-    const i = AGE_GROUP_ORDER.indexOf(a)
-    const j = AGE_GROUP_ORDER.indexOf(b)
-    if (i !== -1 && j !== -1) return i - j
-    if (i !== -1) return -1
-    if (j !== -1) return 1
-    return a.localeCompare(b)
-  })
-})
+    const i = AGE_GROUP_ORDER.indexOf(a);
+    const j = AGE_GROUP_ORDER.indexOf(b);
+    if (i !== -1 && j !== -1) return i - j;
+    if (i !== -1) return -1;
+    if (j !== -1) return 1;
+    return a.localeCompare(b);
+  });
+});
 </script>
 
 <style lang="scss" scoped>
@@ -200,15 +237,15 @@ const displayedAgeGroups = computed(() => {
   background: v.$color-bg-dimmer;
   transition: transform v.$transition-base;
   transform: scale(1);
-  
+
   &.map-academy-card-thumb-placeholder {
     background: v.$color-bg-dimmer;
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     &::after {
-      content: '';
+      content: "";
       width: 3rem;
       height: 3rem;
       background: v.$color-border-dim;
@@ -240,7 +277,7 @@ const displayedAgeGroups = computed(() => {
   flex-wrap: wrap;
   gap: v.$space-xs;
   margin-bottom: v.$space-md;
-  
+
   p {
     display: inline-flex;
     align-items: center;

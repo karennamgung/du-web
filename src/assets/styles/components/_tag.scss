@@ -7,13 +7,13 @@
 @use '../abstracts/primitives/typography' as t;
 
 .tag {
-  @include m.tag-base;
-  font-weight: t.$font-weight-semibold; /* p 기본 타이포 + semibold */
+  @include m.tag-base; /* p 기본 타이포 + semibold */
 }
+
 .tag-small {
   @include m.tag-small;
-  font-weight: t.$font-weight-semibold;
 }
+
 .tag-primary {
   background-color: c.$color-primary-dimmer;
   color: c.$color-primary;
