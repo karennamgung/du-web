@@ -71,7 +71,7 @@
         :label="cardTitle"
         :variant="variant === 'child' ? 'gray' : 'primary'"
         size="small"
-        class="mb-sm"
+        class="mb-md"
       />
 
       <!-- 편집 시 배경 적용 구역: 닉네임/자녀 폼만 -->
