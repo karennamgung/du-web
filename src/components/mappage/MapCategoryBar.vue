@@ -47,7 +47,7 @@
 import { computed } from 'vue'
 import type { Academy } from '@/types/academy'
 import MapSearch from '@/components/mappage/MapSearch.vue'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, getSubjectIcon, type Subject } from '@/constants/subjectTypes'
 
 const props = defineProps<{

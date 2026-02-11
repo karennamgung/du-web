@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import ModalSmall from '@/components/ModalSmall.vue'
+import ModalSmall from '@/components/shared/ModalSmall.vue'
 import ProfileInfoView from '@/views/ProfileInfoView.vue'
 import { useProfileStore } from '@/stores/profile'
 

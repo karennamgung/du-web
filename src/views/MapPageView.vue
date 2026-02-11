@@ -76,8 +76,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import LoginModal from '@/components/LoginModal.vue'
-import Icon from '@/components/Icon.vue'
+import LoginModal from '@/components/modals/LoginModal.vue'
+import Icon from '@/components/shared/Icon.vue'
 import MapCategoryBar from '@/components/mappage/MapCategoryBar.vue'
 import MapContainer from '@/components/mappage/MapContainer.vue'
 import MapAcademyList from '@/components/mappage/MapAcademyList.vue'

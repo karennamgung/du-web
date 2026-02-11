@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { mdiClose } from '@mdi/js'
 
 interface Props {
@@ -132,14 +132,14 @@ function handleCancel() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: v.$space-lg;
+  padding: v.$space-lg v.$space-lg v.$space-sm v.$space-lg;
 }
 
 .modal-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: v.$space-lg;
+  padding: v.$space-sm v.$space-lg v.$space-lg v.$space-lg;
 }
 
 .modal-footer {

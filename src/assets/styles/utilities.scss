@@ -40,19 +40,19 @@
   font-size: t.$font-size-base !important;
   font-weight: t.$font-weight-semibold !important;
   color: c.$color-text-dim !important;
-  line-height: t.$line-height-normal !important;
+  line-height: t.$line-height-relaxed !important;
 }
 .text-caption-sm {
   font-size: t.$font-size-sm !important;
   font-weight: t.$font-weight-semibold !important;
   color: c.$color-text-dim !important;
-  line-height: t.$line-height-normal !important;
+  line-height: t.$line-height-relaxed !important;
 }
 .text-caption-xs {
   font-size: t.$font-size-xs !important;
   font-weight: t.$font-weight-semibold !important;
   color: c.$color-text-dimmer !important;
-  line-height: t.$line-height-normal !important;
+  line-height: t.$line-height-relaxed !important;
 }
 
 // ---- Color (텍스트 색) ----
@@ -90,7 +90,7 @@
 
 // ---- Spacing (padding) ----
 .p-0 { padding: 0; }
-.p-xxs { padding: s.$space-2xs; }
+.p-2xs { padding: s.$space-2xs; }
 .p-xs { padding: s.$space-xs; }
 .p-sm { padding: s.$space-sm; }
 .p-md { padding: s.$space-md; }
@@ -100,7 +100,7 @@
 .p-3xl { padding: s.$space-3xl; }
 
 // Padding - 좌우
-.px-xxs { padding-left: s.$space-2xs; padding-right: s.$space-2xs; }
+.px-2xs { padding-left: s.$space-2xs; padding-right: s.$space-2xs; }
 .px-xs { padding-left: s.$space-xs; padding-right: s.$space-xs; }
 .px-sm { padding-left: s.$space-sm; padding-right: s.$space-sm; }
 .px-md { padding-left: s.$space-md; padding-right: s.$space-md; }
@@ -110,7 +110,7 @@
 .px-3xl { padding-left: s.$space-3xl; padding-right: s.$space-3xl; }
 
 // Padding - 상하
-.py-xxs { padding-top: s.$space-2xs; padding-bottom: s.$space-2xs; }
+.py-2xs { padding-top: s.$space-2xs; padding-bottom: s.$space-2xs; }
 .py-xs { padding-top: s.$space-xs; padding-bottom: s.$space-xs; }
 .py-sm { padding-top: s.$space-sm; padding-bottom: s.$space-sm; }
 .py-md { padding-top: s.$space-md; padding-bottom: s.$space-md; }
@@ -120,7 +120,7 @@
 .py-3xl { padding-top: s.$space-3xl; padding-bottom: s.$space-3xl; }
 
 // Padding - 위
-.pt-xxs { padding-top: s.$space-2xs; }
+.pt-2xs { padding-top: s.$space-2xs; }
 .pt-xs { padding-top: s.$space-xs; }
 .pt-sm { padding-top: s.$space-sm; }
 .pt-md { padding-top: s.$space-md; }
@@ -130,7 +130,7 @@
 .pt-3xl { padding-top: s.$space-3xl; }
 
 // Padding - 아래
-.pb-xxs { padding-bottom: s.$space-2xs; }
+.pb-2xs { padding-bottom: s.$space-2xs; }
 .pb-xs { padding-bottom: s.$space-xs; }
 .pb-sm { padding-bottom: s.$space-sm; }
 .pb-md { padding-bottom: s.$space-md; }
@@ -140,7 +140,7 @@
 .pb-3xl { padding-bottom: s.$space-3xl; }
 
 // Padding - 왼쪽
-.pl-xxs { padding-left: s.$space-2xs; }
+.pl-2xs { padding-left: s.$space-2xs; }
 .pl-xs { padding-left: s.$space-xs; }
 .pl-sm { padding-left: s.$space-sm; }
 .pl-md { padding-left: s.$space-md; }
@@ -150,7 +150,7 @@
 .pl-3xl { padding-left: s.$space-3xl; }
 
 // Padding - 오른쪽
-.pr-xxs { padding-right: s.$space-2xs; }
+.pr-2xs { padding-right: s.$space-2xs; }
 .pr-xs { padding-right: s.$space-xs; }
 .pr-sm { padding-right: s.$space-sm; }
 .pr-md { padding-right: s.$space-md; }
@@ -161,7 +161,7 @@
 
 // ---- Spacing (margin) ----
 .m-0 { margin: 0; }
-.m-xxs { margin: s.$space-2xs; }
+.m-2xs { margin: s.$space-2xs; }
 .m-xs { margin: s.$space-xs; }
 .m-sm { margin: s.$space-sm; }
 .m-md { margin: s.$space-md; }
@@ -171,7 +171,7 @@
 .m-3xl { margin: s.$space-3xl; }
 
 // Margin - 좌우
-.mx-xxs { margin-left: s.$space-2xs; margin-right: s.$space-2xs; }
+.mx-2xs { margin-left: s.$space-2xs; margin-right: s.$space-2xs; }
 .mx-xs { margin-left: s.$space-xs; margin-right: s.$space-xs; }
 .mx-sm { margin-left: s.$space-sm; margin-right: s.$space-sm; }
 .mx-md { margin-left: s.$space-md; margin-right: s.$space-md; }
@@ -181,7 +181,7 @@
 .mx-3xl { margin-left: s.$space-3xl; margin-right: s.$space-3xl; }
 
 // Margin - 상하
-.my-xxs { margin-top: s.$space-2xs; margin-bottom: s.$space-2xs; }
+.my-2xs { margin-top: s.$space-2xs; margin-bottom: s.$space-2xs; }
 .my-xs { margin-top: s.$space-xs; margin-bottom: s.$space-xs; }
 .my-sm { margin-top: s.$space-sm; margin-bottom: s.$space-sm; }
 .my-md { margin-top: s.$space-md; margin-bottom: s.$space-md; }
@@ -191,7 +191,7 @@
 .my-3xl { margin-top: s.$space-3xl; margin-bottom: s.$space-3xl; }
 
 // Margin - 위
-.mt-xxs { margin-top: s.$space-2xs; }
+.mt-2xs { margin-top: s.$space-2xs; }
 .mt-xs { margin-top: s.$space-xs; }
 .mt-sm { margin-top: s.$space-sm; }
 .mt-md { margin-top: s.$space-md; }
@@ -201,7 +201,7 @@
 .mt-3xl { margin-top: s.$space-3xl; }
 
 // Margin - 아래
-.mb-xxs { margin-bottom: s.$space-2xs; }
+.mb-2xs { margin-bottom: s.$space-2xs; }
 .mb-xs { margin-bottom: s.$space-xs; }
 .mb-sm { margin-bottom: s.$space-sm; }
 .mb-md { margin-bottom: s.$space-md; }
@@ -211,7 +211,7 @@
 .mb-3xl { margin-bottom: s.$space-3xl; }
 
 // Margin - 왼쪽
-.ml-xxs { margin-left: s.$space-2xs; }
+.ml-2xs { margin-left: s.$space-2xs; }
 .ml-xs { margin-left: s.$space-xs; }
 .ml-sm { margin-left: s.$space-sm; }
 .ml-md { margin-left: s.$space-md; }
@@ -221,7 +221,7 @@
 .ml-3xl { margin-left: s.$space-3xl; }
 
 // Margin - 오른쪽
-.mr-xxs { margin-right: s.$space-2xs; }
+.mr-2xs { margin-right: s.$space-2xs; }
 .mr-xs { margin-right: s.$space-xs; }
 .mr-sm { margin-right: s.$space-sm; }
 .mr-md { margin-right: s.$space-md; }

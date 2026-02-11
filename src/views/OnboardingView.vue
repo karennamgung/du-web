@@ -39,11 +39,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { mdiChevronLeft } from '@mdi/js'
 import { useAuthStore } from '@/stores/auth'
-import { useProfileStore } from '@/stores/profile'
-import { supabase } from '@/lib/supabase'
+import { useProfileStore, type ProfileUpsertPayload } from '@/stores/profile'
 import OnboardingStepTerms from '@/components/onboarding/OnboardingStepTerms.vue'
 import OnboardingStepUserType from '@/components/onboarding/OnboardingStepUserType.vue'
 import OnboardingStepProfile from '@/components/onboarding/OnboardingStepProfile.vue'
@@ -191,53 +190,33 @@ async function handleComplete() {
       throw new Error('별명을 입력해주세요.')
     }
 
-    // 프로필 저장
-    const profilePayload: any = {
+    // 프로필 저장 (Supabase는 profile 스토어의 upsertProfile에서 수행)
+    const profilePayload: ProfileUpsertPayload = {
       id: auth.user.id,
       user_id: auth.user.id,
       user_type: onboardingData.value.userType,
       nickname: onboardingData.value.nickname.trim(),
       residence: onboardingData.value.residence || null,
       onboarding_completed: true,
+      profile_image_url: onboardingData.value.profileImageUrl ?? null,
+      children:
+        onboardingData.value.userType === 'parent'
+          ? onboardingData.value.children
+              .filter((child) => child.name.trim().length > 0)
+              .map((child) => ({
+                name: child.name.trim(),
+                age: child.age,
+                gender: child.gender,
+              }))
+          : [],
     }
 
-    // 프로필 이미지가 있으면 추가 (없어도 됨)
-    if (onboardingData.value.profileImageUrl) {
-      profilePayload.profile_image_url = onboardingData.value.profileImageUrl
-    } else {
-      profilePayload.profile_image_url = null
+    if (profilePayload.children && profilePayload.children.length > 0) {
+      console.log('[OnboardingView] 아이 정보 포함:', profilePayload.children)
     }
-
-    // 학부모인 경우 아이 정보를 JSON 배열로 변환하여 profiles.children에 저장
-    if (onboardingData.value.userType === 'parent') {
-      const childrenData = onboardingData.value.children
-        .filter((child) => child.name.trim().length > 0) // 이름이 있는 아이만 저장
-        .map((child) => ({
-          name: child.name.trim(),
-          age: child.age,
-          gender: child.gender,
-        }))
-      
-      profilePayload.children = childrenData.length > 0 ? childrenData : []
-      console.log('[OnboardingView] 아이 정보 포함:', childrenData)
-    } else {
-      profilePayload.children = []
-    }
-
     console.log('[OnboardingView] 프로필 저장 시도:', profilePayload)
-    const { error: profileError } = await supabase.from('profiles').upsert(profilePayload)
-
-    if (profileError) {
-      console.error('[OnboardingView] 프로필 저장 에러:', profileError)
-      throw profileError
-    }
-
-    console.log('[OnboardingView] 프로필 저장 성공')
-
-    // 프로필 스토어 새로고침
-    console.log('[OnboardingView] 프로필 스토어 새로고침 시작')
-    await profile.refresh()
-    console.log('[OnboardingView] 프로필 스토어 새로고침 완료')
+    await profile.upsertProfile(profilePayload)
+    console.log('[OnboardingView] 프로필 저장 및 스토어 새로고침 완료')
 
     // 리디렉션
     console.log('[OnboardingView] 리디렉션 시작:', onboardingData.value.userType)

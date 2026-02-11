@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase } from '@/lib/supabase'
+import type { Database } from '@/types/supabase'
 import { useAuthStore } from './auth'
+
+type ProfileRow = Database['public']['Tables']['profiles']['Row']
 
 export interface Child {
   name: string
@@ -32,6 +35,36 @@ export const USER_TYPE_LABELS: Record<Profile['user_type'], string> = {
 export function getUserTypeLabel(userType: Profile['user_type'] | null | undefined): string {
   if (!userType) return '—'
   return USER_TYPE_LABELS[userType] ?? '—'
+}
+
+/** 자녀 순서 표시 라벨 (첫째 아이, 둘째 아이, …). 나이 순 표시 시 사용 */
+export const CHILD_ORDER_LABELS = [
+  '첫째 아이',
+  '둘째 아이',
+  '셋째 아이',
+  '넷째 아이',
+  '다섯째 아이',
+  '여섯째 아이',
+  '일곱째 아이',
+  '여덟째 아이',
+  '아홉째 아이',
+  '열째 아이',
+] as const
+
+export function getChildOrderLabel(index: number): string {
+  return CHILD_ORDER_LABELS[index] ?? `${index + 1}째 아이`
+}
+
+/** 온보딩/프로필 생성·수정 시 Supabase upsert에 사용하는 페이로드 */
+export interface ProfileUpsertPayload {
+  id: string
+  user_id: string
+  user_type: Profile['user_type']
+  nickname: string
+  residence: string | null
+  onboarding_completed: boolean
+  profile_image_url?: string | null
+  children?: Child[]
 }
 
 export const useProfileStore = defineStore('profile', () => {
@@ -80,11 +113,12 @@ export const useProfileStore = defineStore('profile', () => {
     loading.value = true
     try {
       // 프로필 로드 - maybeSingle()을 사용하여 프로필이 없어도 에러 없이 처리
-      const { data: profileData, error: profileError } = await supabase
+      const { data, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', auth.user.id)
         .maybeSingle()
+      const profileData = data as ProfileRow | null
 
       // maybeSingle()은 프로필이 없을 때 null을 반환하고 에러를 발생시키지 않음
       if (profileError) {
@@ -109,24 +143,27 @@ export const useProfileStore = defineStore('profile', () => {
           onboardingCompleted: profileData?.onboarding_completed,
           childrenCount: profileData?.children?.length || 0,
         })
-        profile.value = profileData || null
-        
+        profile.value = (profileData || null) as Profile | null
+
         // 아이 정보는 profiles.children JSON 필드에서 가져옴 (저장된 값 정규화: birth_year → age 보정)
-        const rawChildren = profile.value?.children || []
-        children.value = rawChildren.map((raw: Record<string, unknown>) => {
-          const hasAge = typeof (raw as Child).age === 'number'
-          const birthYear = typeof (raw as { birth_year?: number }).birth_year === 'number'
-            ? (raw as { birth_year: number }).birth_year
+        const rawChildren = profile.value?.children ?? []
+        const rawList = Array.isArray(rawChildren) ? rawChildren : []
+        children.value = rawList.map((raw: unknown) => {
+          const r = raw as Record<string, unknown>
+          const c = r as unknown as Child
+          const hasAge = typeof c.age === 'number'
+          const birthYear = typeof (r as { birth_year?: number }).birth_year === 'number'
+            ? (r as { birth_year: number }).birth_year
             : null
           const age = hasAge
-            ? (raw as Child).age
+            ? c.age
             : birthYear != null
               ? Math.min(100, Math.max(0, new Date().getFullYear() - birthYear))
               : 10
           return {
-            name: String((raw as Child).name ?? ''),
+            name: String(c.name ?? ''),
             age,
-            gender: ((raw as Child).gender as Child['gender']) ?? null,
+            gender: (c.gender as Child['gender']) ?? null,
           }
         })
         
@@ -164,6 +201,40 @@ export const useProfileStore = defineStore('profile', () => {
   async function refresh() {
     await loadProfile()
   }
+
+  /** Supabase profiles 테이블에 닉네임만 업데이트 후 스토어 새로고침 */
+  async function updateNickname(nickname: string): Promise<void> {
+    const uid = auth.user?.id
+    if (!uid) throw new Error('로그인이 필요합니다.')
+    const { error } = await supabase
+      .from('profiles')
+      // @ts-expect-error Supabase inferred update type can be strict
+      .update({ nickname: nickname.trim() })
+      .eq('user_id', uid)
+    if (error) throw error
+    await loadProfile()
+  }
+
+  /** Supabase profiles 테이블의 children JSON 업데이트 후 스토어 새로고침 */
+  async function updateChildren(newChildren: Child[]): Promise<void> {
+    const uid = auth.user?.id
+    if (!uid) throw new Error('로그인이 필요합니다.')
+    const { error } = await supabase
+      .from('profiles')
+      // @ts-expect-error Supabase inferred update type can be strict
+      .update({ children: newChildren })
+      .eq('user_id', uid)
+    if (error) throw error
+    await loadProfile()
+  }
+
+  /** 온보딩 완료 시 Supabase에 프로필 upsert 후 스토어 새로고침 */
+  async function upsertProfile(payload: ProfileUpsertPayload): Promise<void> {
+    // @ts-expect-error Supabase inferred upsert type can be strict
+    const { error } = await supabase.from('profiles').upsert(payload)
+    if (error) throw error
+    await loadProfile()
+  }
   
   function selectChild(index: number | null) {
     selectedChildIndex.value = index
@@ -187,6 +258,9 @@ export const useProfileStore = defineStore('profile', () => {
     displayName,
     loadProfile,
     refresh,
+    updateNickname,
+    updateChildren,
+    upsertProfile,
     selectChild,
   }
 })

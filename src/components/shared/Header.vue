@@ -91,12 +91,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
-import ProfileInfoModal from '@/components/ProfileInfoModal.vue'
+import ProfileInfoModal from '@/components/modals/ProfileInfoModal.vue'
 import HeaderUserDropdown from '@/components/HeaderUserDropdown.vue'
-import Avatar from '@/components/Avatar.vue'
+import Avatar from './Avatar.vue'
 import { useProfileStore, getUserTypeLabel } from '@/stores/profile'
 import { mdiClose, mdiChevronLeft } from '@mdi/js'
 

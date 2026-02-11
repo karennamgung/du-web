@@ -50,7 +50,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { mdiPlus, mdiMinus } from '@mdi/js'
 
 defineProps<{

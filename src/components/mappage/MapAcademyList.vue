@@ -108,7 +108,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { computed } from 'vue'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import MapAcademyCard from './MapAcademyCard.vue'
 import type { Academy } from '@/types/academy'
 import { mdiChevronLeft } from '@mdi/js'

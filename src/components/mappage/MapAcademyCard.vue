@@ -72,8 +72,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import Icon from '@/components/Icon.vue'
-import TagChip from '@/components/TagChip.vue'
+import Icon from '@/components/shared/Icon.vue'
+import TagChip from '@/components/shared/TagChip.vue'
 import { mdiHeart, mdiHeartOutline, mdiArrowLeftRight, mdiCar, mdiWalk } from '@mdi/js'
 import type { Academy } from '@/types/academy'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'

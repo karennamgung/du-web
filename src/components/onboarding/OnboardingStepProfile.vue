@@ -70,7 +70,7 @@
 import { ref, computed, watch } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
-import Avatar from '@/components/Avatar.vue'
+import Avatar from '@/components/shared/Avatar.vue'
 import {
   DEFAULT_AVATARS,
   isDefaultAvatarUrl,

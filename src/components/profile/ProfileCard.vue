@@ -1,8 +1,8 @@
 <template>
-  <div class="profile-card bg-dimmer">
+  <div class="profile-card" :class="{ 'profile-card--elevated': withCardStyle }">
     <label
       v-if="showSelector"
-      class="radio-selector"
+      class="radio-selector  mt-2xs"
       :aria-label="`${cardTitle} 선택`"
       @click="$emit('select')"
     >
@@ -151,7 +151,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { getUserTypeLabel } from '@/stores/profile'
 import { mdiPencilOutline, mdiClose, mdiCheck, mdiTrashCanOutline } from '@mdi/js'
 
@@ -172,9 +172,12 @@ const props = withDefaults(
     canSaveChild?: boolean
     currentYear?: number
     showDelete?: boolean
+    /** true면 배경색·border-radius 적용 (자녀 추가하기 카드 등) */
+    withCardStyle?: boolean
   }>(),
   {
     selected: false,
+    withCardStyle: false,
     showEdit: false,
     showSelector: true,
     isEditing: false,
@@ -307,9 +310,13 @@ function onContentClick() {
   align-items: flex-start;
   gap: v.$space-md;
   padding: v.$space-lg;
-  border-radius: v.$radius-md;
+  
   text-align: left;
-  /* 호버 시 색상 바뀌지 않음 */
+
+  &--elevated {
+    background-color: v.$color-bg-dimmer;
+    border-radius: v.$radius-md;
+  }
 }
 
 .profile-card-content {
@@ -336,7 +343,7 @@ function onContentClick() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  gap: v.$space-md;
+  gap: v.$space-xs;
 }
 
 .card-row {
@@ -350,6 +357,6 @@ function onContentClick() {
 }
 
 .card-title {
-  margin: 0 0 v.$space-md 0;
+  margin: 0 0 v.$space-sm 0;
 }
 </style>

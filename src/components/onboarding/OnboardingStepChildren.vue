@@ -106,6 +106,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { getChildOrderLabel } from '@/stores/profile'
 
 interface Child {
   name: string
@@ -137,11 +138,8 @@ const children = ref<Child[]>(
       ]
 )
 
-
-const childLabels = ['첫째 아이', '둘째 아이', '셋째 아이', '넷째 아이', '다섯째 아이', '여섯째 아이', '일곱째 아이', '여덟째 아이', '아홉째 아이', '열째 아이']
-
 function getChildLabel(index: number): string {
-  return `${childLabels[index] || `${index + 1}번째 아이`}아이`
+  return getChildOrderLabel(index)
 }
 
 function addChild() {

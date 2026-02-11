@@ -33,7 +33,7 @@
           :is-editing="editingChildIndex === item.originalIndex"
           :show-delete="true"
           :child="item.child"
-          :order-label="getChildOrder(displayIndex)"
+          :order-label="getChildOrderLabel(displayIndex)"
           :child-form="newChild"
           :can-save-child="canSaveChild"
           :current-year="currentYear"
@@ -46,24 +46,26 @@
         />
       </div>
 
-      <!-- 자녀 추가 버튼 (새 자녀 카드가 떠 있으면 숨김) -->
-      <button
-        v-if="!showAddChildForm"
-        type="button"
-        class="btn btn-outline w-full"
-        @click="openAddChildForm"
-      >
-        <Icon class="icon-sm" :path="mdiPlus" />
-        자녀 추가하기
-      </button>
+      <!-- 자녀 추가 버튼 / 카드 (위에 xl 마진) -->
+      <div class="profile-add-child-section">
+        <button
+          v-if="!showAddChildForm"
+          type="button"
+          class="btn btn-outline w-full"
+          @click="openAddChildForm"
+        >
+          <Icon class="icon-sm" :path="mdiPlus" />
+          자녀 추가하기
+        </button>
 
-      <!-- 자녀 추가: 수정과 동일한 카드 스타일 -->
-      <ProfileCard
-        v-if="showAddChildForm"
+        <!-- 자녀 추가: 수정과 동일한 카드 스타일, 배경·모서리 적용 -->
+        <ProfileCard
+          v-if="showAddChildForm"
         variant="child"
         :show-selector="false"
         :show-edit="false"
         :is-editing="true"
+        :with-card-style="true"
         order-label="자녀 추가하기"
         :child-form="newChild"
         :can-save-child="canSaveChild"
@@ -71,7 +73,8 @@
         @save="saveChild"
         @cancel="cancelAddChild"
         @update:child-form="newChild = $event"
-      />
+        />
+      </div>
     </template>
 
     <!-- 학생인 경우: 학부모와 동일한 카드 레이아웃 -->
@@ -98,15 +101,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import ProfileCard from '@/components/profile/ProfileCard.vue'
-import Icon from '@/components/Icon.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { mdiPlus } from '@mdi/js'
-import { useProfileStore } from '@/stores/profile'
-import { supabase } from '@/lib/supabase'
-import { useAuthStore } from '@/stores/auth'
-import type { Child } from '@/stores/profile'
+import { useProfileStore, getChildOrderLabel, type Child } from '@/stores/profile'
 
 const profileStore = useProfileStore()
-const auth = useAuthStore()
 
 const profile = computed(() => profileStore.profile)
 const children = computed(() => profileStore.children)
@@ -144,11 +143,6 @@ const canSaveChild = computed(() => {
   return newChild.value.name.trim().length > 0 && newChild.value.age >= 0
 })
 
-function getChildOrder(index: number): string {
-  const orders = ['첫째 아이', '둘째 아이', '셋째 아이', '넷째 아이', '다섯째 아이', '여섯째 아이', '일곱째 아이', '여덟째 아이', '아홉째 아이', '열째 아이']
-  return orders[index] || `${index + 1}째 아이`
-}
-
 function selectParent() {
   profileStore.selectChild(null)
 }
@@ -171,20 +165,11 @@ function cancelEditProfile() {
 }
 
 async function saveProfile() {
-  if (!auth.user?.id || !profile.value || saving.value || !canSaveProfile.value) return
+  if (!profile.value || saving.value || !canSaveProfile.value) return
 
   saving.value = true
   try {
-    const { error } = await supabase
-      .from('profiles')
-      // @ts-expect-error Supabase inferred update type can be strict
-      .update({
-        nickname: editProfileForm.value.nickname.trim(),
-      })
-      .eq('user_id', auth.user.id)
-
-    if (error) throw error
-    await profileStore.refresh()
+    await profileStore.updateNickname(editProfileForm.value.nickname.trim())
     editingProfile.value = null
     editProfileForm.value = { nickname: '' }
   } catch (error) {
@@ -218,20 +203,13 @@ function cancelEditChild() {
 }
 
 async function deleteChild(index: number) {
-  if (!auth.user?.id || !profile.value || saving.value) return
+  if (!profile.value || saving.value) return
   if (!confirm('이 자녀 정보를 삭제할까요?')) return
 
   saving.value = true
   try {
     const updatedChildren = children.value.filter((_, i) => i !== index)
-    const { error } = await supabase
-      .from('profiles')
-      // @ts-expect-error Supabase inferred update type can be strict
-      .update({ children: updatedChildren })
-      .eq('user_id', auth.user.id)
-
-    if (error) throw error
-    await profileStore.refresh()
+    await profileStore.updateChildren(updatedChildren)
 
     if (editingChildIndex.value === index) {
       editingChildIndex.value = null
@@ -253,40 +231,31 @@ async function deleteChild(index: number) {
 }
 
 async function saveChild() {
-  if (!auth.user?.id || !profile.value || saving.value) return
+  if (!profile.value || saving.value) return
 
   saving.value = true
   try {
-  const isEditing = editingChildIndex.value !== null
-  const updatedChildren: Child[] = isEditing
-    ? children.value.map((c, i) =>
-        i === editingChildIndex.value!
-          ? {
-              name: newChild.value.name.trim(),
-              age: newChild.value.age,
-              gender: newChild.value.gender,
-            }
-          : c
-      )
-    : [
-        ...children.value,
-        {
-          name: newChild.value.name.trim(),
-          age: newChild.value.age,
-          gender: newChild.value.gender,
-        },
-      ]
+    const isEditing = editingChildIndex.value !== null
+    const updatedChildren: Child[] = isEditing
+      ? children.value.map((c, i) =>
+          i === editingChildIndex.value!
+            ? {
+                name: newChild.value.name.trim(),
+                age: newChild.value.age,
+                gender: newChild.value.gender,
+              }
+            : c
+        )
+      : [
+          ...children.value,
+          {
+            name: newChild.value.name.trim(),
+            age: newChild.value.age,
+            gender: newChild.value.gender,
+          },
+        ]
 
-    const { error } = await supabase
-      .from('profiles')
-      // @ts-expect-error Supabase inferred update type can be strict
-      .update({ children: updatedChildren })
-      .eq('user_id', auth.user.id)
-
-    if (error) throw error
-
-    // 프로필 스토어 새로고침
-    await profileStore.refresh()
+    await profileStore.updateChildren(updatedChildren)
 
     if (isEditing) {
       profileStore.selectChild(editingChildIndex.value)
@@ -337,7 +306,25 @@ function cancelAddChild() {
 .selection-list {
   display: flex;
   flex-direction: column;
-  gap: v.$space-sm;
-  margin-bottom: v.$space-lg;
+  gap: 0;
+
+  /* 2개 이상 카드일 때 하단 보더로 구분 (마지막 카드는 보더 없음) */
+  :deep(.profile-card) {
+    padding: v.$space-lg 0;
+    border-bottom: 1px solid v.$color-border-dim;
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+}
+
+.profile-add-child-section {
+  margin-top: v.$space-xl;
 }
 </style>

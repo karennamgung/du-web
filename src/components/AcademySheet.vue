@@ -100,9 +100,9 @@
 <script setup lang="ts">
 import CommentComposer from '@/components/CommentComposer.vue'
 import CommentList from '@/components/CommentList.vue'
-import LoginModal from '@/components/LoginModal.vue'
-import TagChip from '@/components/TagChip.vue'
-import Icon from '@/components/Icon.vue'
+import LoginModal from '@/components/modals/LoginModal.vue'
+import TagChip from '@/components/shared/TagChip.vue'
+import Icon from '@/components/shared/Icon.vue'
 import { getDisplaySubjects, isValidAgeGroup, AGE_GROUP_ORDER } from '@/constants/subjectTypes'
 import { useFavorites } from '@/composables/useFavorites'
 import { useAuthStore } from '@/stores/auth'

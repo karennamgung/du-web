@@ -11,8 +11,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import LoginModal from '@/components/LoginModal.vue'
-import Header from '@/components/Header.vue'
+import LoginModal from '@/components/modals/LoginModal.vue'
+import Header from '@/components/shared/Header.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
 import { useProfileStore } from '@/stores/profile'
