@@ -1257,15 +1257,13 @@ onMounted(async () => {
     loading.value = false
     await nextTick()
     await nextTick() // 컴포넌트 마운트를 위한 추가 대기
-    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이 재계산. 초기에는 maxPx로 두지 않아 핸들이 보이게 함
+    // 모바일: 실제 필터/헤더 레이아웃 기준으로 바텀시트 높이를 동기 설정해 첫 페인트에서 핸들이 보이게 함 (rAF 사용 시 일부 모바일에서 핸들이 나중에 그려짐)
     if (isMobile.value) {
-      requestAnimationFrame(() => {
-        const defaultPx = getDefaultSheetHeightPx()
-        const maxPx = getMaxSheetHeightPx()
-        let initial = Math.max(defaultPx, 260)
-        if (initial >= maxPx) initial = defaultPx
-        bottomSheetHeight.value = Math.min(initial, maxPx)
-      })
+      const defaultPx = getDefaultSheetHeightPx()
+      const maxPx = getMaxSheetHeightPx()
+      let initial = Math.max(defaultPx, 260)
+      if (initial >= maxPx) initial = defaultPx
+      bottomSheetHeight.value = Math.min(initial, maxPx)
     }
     // mapContainerRef가 준비될 때까지 최대 20번 시도 (약 1초)
     let retries = 0

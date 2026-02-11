@@ -247,7 +247,7 @@ defineExpose({
   }
 }
 
-// 모바일: 상단 드래그 영역 (항상 맨 위에 노출, sticky)
+// 모바일: 상단 드래그 영역 (항상 맨 위에 노출, sticky). translateZ(0)으로 레이어 분리해 로딩 직후에도 페인트되게 함
 .map-bottom-sheet-drag-area {
   flex-shrink: 0;
   position: sticky;
@@ -257,7 +257,8 @@ defineExpose({
   cursor: grab;
   touch-action: none;
   user-select: none;
-  
+  transform: translateZ(0);
+
   &:active {
     cursor: grabbing;
   }
