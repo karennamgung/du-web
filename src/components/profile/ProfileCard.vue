@@ -79,9 +79,9 @@
             :key="row.key"
             class="card-row"
           >
-            <span class="text-caption-sm">{{ row.label }}</span>
+            <span class="text-caption">{{ row.label }}</span>
             <template v-if="!isEditing">
-              <p class="type-size-sm type-weight-medium">{{ row.display }}</p>
+              <p class="type-weight-medium">{{ row.display }}</p>
             </template>
             <template v-else-if="row.type === 'text'">
               <input
@@ -341,7 +341,7 @@ function onContentClick() {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  gap: v.$space-xs;
+  gap: v.$space-sm;
 }
 
 .card-row {

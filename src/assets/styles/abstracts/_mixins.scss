@@ -97,11 +97,11 @@
   border-radius: s.$radius-md;
   font-family: t.$font-family-fallback;
   font-size: t.$font-size-base;
-  font-weight: t.$font-weight-medium;
+  font-weight: t.$font-weight-semibold;
   line-height: t.$line-height-relaxed;
   cursor: pointer;
   border: none;
-  box-shadow: inset 0 0 0 1px transparent;
+  box-shadow: inset 0 0 0 2px transparent;
   transition: background-color e.$transition-fast, color e.$transition-fast, box-shadow e.$transition-fast;
   white-space: nowrap;
 }
