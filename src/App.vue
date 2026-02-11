@@ -73,13 +73,16 @@ body {
 }
 
 #app main {
-  flex: 1;
+  flex: 1 1 0%;
   min-height: 0;
   overflow: auto;
 }
 
-/* 지도 페이지: main 스크롤 비활성화, 내부(지도·바텀시트)만 스크롤 */
+/* 지도 페이지: main 스크롤 비활성화, 내부(학원 목록)만 스크롤. 태블릿에서 전체 화면 스크롤 방지 */
 #app main.main--no-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 </style>

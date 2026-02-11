@@ -1340,7 +1340,9 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   min-height: 0;
+  max-height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .map-page-header {
@@ -1369,15 +1371,17 @@ onBeforeUnmount(() => {
 .map-content {
   flex: 1 1 0%;
   min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  
+  overscroll-behavior: none;
+
   @media (max-width: 767px) {
     flex-direction: column;
   }
-  
+
   @media (min-width: 768px) {
     flex-direction: row;
   }
@@ -1387,13 +1391,14 @@ onBeforeUnmount(() => {
 .map-content-inner {
   flex: 1 1 0%;
   min-height: 0;
+  max-height: 100%;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 
   @media (min-width: 768px) {
-    flex: 1;
+    flex: 1 1 0%;
     flex-direction: row;
   }
 }

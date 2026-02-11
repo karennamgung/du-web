@@ -69,14 +69,14 @@
   @include button-base;
   background-color: sc.$color-bg-base;
   color: sc.$color-primary;
-  box-shadow: inset 0 0 0 1px sc.$color-primary;
+  box-shadow: inset 0 0 0 2px sc.$color-primary;
   &:hover:not(:disabled) {
     background-color: sc.$color-primary-dimmer;
-    box-shadow: inset 0 0 0 1px sc.$color-primary;
+    box-shadow: inset 0 0 0 2px sc.$color-primary;
   }
   &:focus-visible {
     outline: none;
-    box-shadow: inset 0 0 0 1px sc.$color-primary, sc.$shadow-focus;
+    box-shadow: inset 0 0 0 2px sc.$color-primary, sc.$shadow-focus;
   }
 }
 
