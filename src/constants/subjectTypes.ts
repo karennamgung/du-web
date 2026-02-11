@@ -178,7 +178,7 @@ export function isValidAgeGroup(ageGroup: string): ageGroup is AgeGroup {
 }
 
 /**
- * 만 나이 → 대상 나이 필터(연령 그룹) 매핑
+ * 만 나이 → 연령 필터(연령 그룹) 매핑
  * 유치 0–6세, 초등 7–12세, 중등 13–15세, 고등 16세 이상
  */
 export function getAgeGroupFromAge(age: number): AgeGroup {
@@ -189,7 +189,7 @@ export function getAgeGroupFromAge(age: number): AgeGroup {
 }
 
 /**
- * 만 나이 배열 → 대상 나이 필터(연령 그룹) 배열 (중복 제거, AGE_GROUP_ORDER 순)
+ * 만 나이 배열 → 연령 필터(연령 그룹) 배열 (중복 제거, AGE_GROUP_ORDER 순)
  */
 export function getAgeGroupsFromAges(ages: number[]): AgeGroup[] {
   const set = new Set<AgeGroup>()
