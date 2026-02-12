@@ -29,7 +29,7 @@
             <button
               v-if="currentStep > 0"
               type="button"
-              class="btn btn-outline"
+              class="btn btn-outline btn-previous"
               aria-label="뒤로가기"
               @click="goBack"
             >
@@ -332,5 +332,9 @@ onMounted(() => {
   margin-top: auto;
   padding-top: v.$space-xl;
   gap: v.$space-sm;
+}
+
+.btn-previous {
+  width: 30%;
 }
 </style>
