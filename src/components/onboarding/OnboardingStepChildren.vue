@@ -1,7 +1,7 @@
 <template>
   <div class="step-body">
     <div class="children-choice" role="radiogroup" aria-label="자녀 등록 여부">
-      <div class="children-choice__option children-choice__option--with-body">
+      <div class="children-choice__option">
         <label class="radio-selector radio-selector--with-label children-choice__label">
           <span class="radio-selector__circle">
             <input
@@ -93,6 +93,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update-data': [data: { children: Child[] }]
   'update:canProceed': [value: boolean]
+  next: []
   complete: []
 }>()
 
@@ -166,7 +167,7 @@ function requestNext() {
   } else {
     emit('update-data', { children: [] })
   }
-  emit('complete')
+  emit('next')
 }
 
 defineExpose({
@@ -196,7 +197,7 @@ watch(
   gap: v.$space-xl;
 }
 
-.children-choice__option--with-body {
+.children-choice__option{
   display: flex;
   flex-direction: column;
   gap: v.$space-sm;
