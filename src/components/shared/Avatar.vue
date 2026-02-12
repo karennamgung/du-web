@@ -75,8 +75,8 @@ const avatarLetter = computed(() => {
 }
 
 .avatar--sm {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .avatar--md {

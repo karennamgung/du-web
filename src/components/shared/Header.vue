@@ -1,6 +1,6 @@
 <template>
   <header
-    class="flex items-center justify-between flex-wrap gap-md p-md px-lg border-b bg-base"
+    class="flex items-center justify-between flex-wrap gap-md p-sm px-lg border-b bg-base"
     :class="{ 'header-px-2rem': route.path === '/' || route.path.startsWith('/admin') }"
   >
     <div class="flex items-center gap-lg flex-wrap">
@@ -45,7 +45,7 @@
         <button
           v-else
           type="button"
-          class="btn btn-outline"
+          class="link"
           @click="handleLocationClick"
         >
           위치 찾기
