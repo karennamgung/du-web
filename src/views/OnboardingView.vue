@@ -17,6 +17,7 @@
             :is="currentStepConfig.component"
             :onboarding-data="onboardingData"
             @update-data="handleUpdateData"
+            @update:can-proceed="stepCanProceed = $event"
             @next="handleNext"
             @complete="handleStepComplete"
           />
@@ -96,39 +97,36 @@ const onboardingData = ref<OnboardingData>({
 });
 
 const steps = computed((): StepConfig[] => {
-  const baseSteps: StepConfig[] = [
-    {
-      title: "약관에 동의해주세요",
-      description: "서비스 이용을 위해 약관에 동의가 필요합니다.",
-      component: OnboardingStepTerms,
-    },
-    {
-      title: "돼지언니와 처음 만나셨네요.\n환영해요.",
-      description: "어떤 유형인지 알려주세요.",
-      component: OnboardingStepUserType,
-    },
-    {
-      title: "프로필을 만들어보세요",
-      description:
-        "돼지언니와 함께 할 나의 프로필이예요.",
-      component: OnboardingStepProfile,
-    },
-    {
-      title: "거주지를 알려주세요",
-      description: "맞춤형 교육 정보를 제공하기 위해 거주 지역이 필요해요.",
-      component: OnboardingStepResidence,
-    },
-  ];
+  const terms: StepConfig = {
+    title: "약관에 동의해주세요",
+    description: "서비스 이용을 위해 약관에 동의가 필요합니다.",
+    component: OnboardingStepTerms,
+  };
+  const userType: StepConfig = {
+    title: "돼지언니와 처음 만나셨네요.\n환영해요.",
+    description: "어떤 유형인지 알려주세요.",
+    component: OnboardingStepUserType,
+  };
+  const children: StepConfig = {
+    title: "아이를 등록해주세요",
+    description: "맞춤형 교육 정보를 제공하기 위해 아이 정보가 필요해요.",
+    component: OnboardingStepChildren,
+  };
+  const profile: StepConfig = {
+    title: "프로필을 만들어보세요",
+    description: "돼지언니와 함께 할 나의 프로필이예요.",
+    component: OnboardingStepProfile,
+  };
+  const residence: StepConfig = {
+    title: "거주지를 알려주세요",
+    description: "맞춤형 교육 정보를 제공하기 위해 거주 지역이 필요해요.",
+    component: OnboardingStepResidence,
+  };
 
   if (onboardingData.value.userType === "parent") {
-    baseSteps.push({
-      title: "아이를 등록해주세요",
-      description: "맞춤형 교육 정보를 제공하기 위해 아이 정보가 필요해요.",
-      component: OnboardingStepChildren,
-    });
+    return [terms, userType, children, profile, residence];
   }
-
-  return baseSteps;
+  return [terms, userType, profile, residence];
 });
 
 const currentStepConfig = computed(
@@ -139,7 +137,10 @@ const isLastStep = computed(
   () => currentStep.value >= steps.value.length - 1 && steps.value.length > 0,
 );
 
-const stepCanProceed = computed(() => stepRef.value?.canProceed?.value ?? false);
+const stepCanProceed = ref(false);
+watch(currentStep, () => {
+  stepCanProceed.value = false;
+});
 
 function onPrimaryAction() {
   stepRef.value?.requestNext();

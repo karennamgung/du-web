@@ -30,6 +30,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update-data': [data: { userType: 'parent' | 'student' | 'academy' | null }]
+  'update:canProceed': [value: boolean]
   next: []
 }>()
 
@@ -43,9 +44,14 @@ const userTypeOptions: { type: UserType; title: string; icon: string; desc: stri
 
 const selectedType = ref<UserType | null>(props.onboardingData.userType)
 
-watch(selectedType, () => {
-  emit('update-data', { userType: selectedType.value })
-})
+watch(
+  selectedType,
+  (value) => {
+    emit('update:canProceed', !!value)
+    emit('update-data', { userType: value })
+  },
+  { immediate: true },
+)
 
 function selectType(type: UserType) {
   selectedType.value = type

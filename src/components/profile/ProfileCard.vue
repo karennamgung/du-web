@@ -24,9 +24,12 @@
       @click="onContentClick"
       @keydown.enter.space.prevent="onContentClick"
     >
-      <!-- 상단 우측: 비수정 시 삭제(자녀만)·연필(수정), 수정 시 취소·저장 -->
+      <!-- 상단 우측: 비수정 시 삭제(자녀만)·연필(수정), 수정 시 취소·저장 또는 삭제만(hideSaveCancel) -->
       <div
-        v-if="(showEdit || isEditing) && !(isEditing && hideSaveCancel)"
+        v-if="
+          (showEdit || isEditing) &&
+          (!(isEditing && hideSaveCancel) || (isEditing && hideSaveCancel && variant === 'child' && showDelete))
+        "
         class="card-actions-top"
       >
         <template v-if="!isEditing">
@@ -48,26 +51,34 @@
             <Icon class="icon-sm" :path="mdiPencilOutline" />
           </button>
         </template>
-        <template v-else>
-          <template v-if="!hideSaveCancel">
-            <button
-              type="button"
-              class="btn btn-icon-only color-dim"
-              aria-label="취소"
-              @click.stop="$emit('cancel')"
-            >
-              <Icon class="icon-sm" :path="mdiClose" />
-            </button>
-            <button
-              type="button"
-              class="btn btn-icon-only color-dim"
-              :disabled="!canSaveCurrent"
-              aria-label="저장"
-              @click.stop="$emit('save')"
-            >
-              <Icon class="icon-sm" :path="mdiCheck" />
-            </button>
-          </template>
+        <template v-else-if="isEditing && hideSaveCancel && variant === 'child' && showDelete">
+          <button
+            type="button"
+            class="btn btn-icon-only color-dim"
+            aria-label="삭제"
+            @click.stop="$emit('delete')"
+          >
+            <Icon class="icon-sm" :path="mdiTrashCanOutline" />
+          </button>
+        </template>
+        <template v-else-if="isEditing && !hideSaveCancel">
+          <button
+            type="button"
+            class="btn btn-icon-only color-dim"
+            aria-label="취소"
+            @click.stop="$emit('cancel')"
+          >
+            <Icon class="icon-sm" :path="mdiClose" />
+          </button>
+          <button
+            type="button"
+            class="btn btn-icon-only color-dim"
+            :disabled="!canSaveCurrent"
+            aria-label="저장"
+            @click.stop="$emit('save')"
+          >
+            <Icon class="icon-sm" :path="mdiCheck" />
+          </button>
         </template>
       </div>
 

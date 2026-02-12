@@ -38,6 +38,7 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{
   "update-data": [data: { residence: string | null }];
+  "update:canProceed": [value: boolean];
   next: [];
 }>();
 
@@ -46,9 +47,14 @@ const residence = ref(props.onboardingData.residence || "");
 
 const canProceed = computed(() => residence.value.trim().length > 0);
 
-watch(residence, () => {
-  emit("update-data", { residence: residence.value.trim() || null });
-});
+watch(
+  residence,
+  () => {
+    emit("update:canProceed", canProceed.value);
+    emit("update-data", { residence: residence.value.trim() || null });
+  },
+  { immediate: true },
+);
 
 function handleInput() {
   emit("update-data", { residence: residence.value.trim() || null });

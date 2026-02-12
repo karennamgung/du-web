@@ -45,6 +45,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update-data': [data: { termsAgreed: boolean }]
+  'update:canProceed': [value: boolean]
   next: []
 }>()
 
@@ -61,6 +62,11 @@ const allAgreed = computed({
 
 const canProceed = computed(() => termsAgreed.value && privacyAgreed.value)
 
+watch(
+  canProceed,
+  (value) => emit('update:canProceed', value),
+  { immediate: true },
+)
 watch([termsAgreed, privacyAgreed], () => {
   emit('update-data', { termsAgreed: termsAgreed.value && privacyAgreed.value })
 })

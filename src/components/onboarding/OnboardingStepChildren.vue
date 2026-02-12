@@ -30,10 +30,10 @@
               :show-delete="index > 0"
               :is-editing="true"
               :can-save-child="true"
-              :hide-save-cancel="index === 0"
+              :hide-save-cancel="true"
               with-card-style
               @update:child-form="(f) => Object.assign(child, f)"
-              @delete="removeChild(index)"
+              @delete="() => removeChild(index)"
             />
           </div>
           <button
@@ -92,6 +92,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update-data': [data: { children: Child[] }]
+  'update:canProceed': [value: boolean]
   complete: []
 }>()
 
@@ -139,7 +140,24 @@ function removeChild(index: number) {
   emit('update-data', { children: children.value })
 }
 
-const canProceed = computed(() => true)
+function isChildComplete(child: Child): boolean {
+  return (
+    child.name.trim().length > 0 &&
+    (child.gender === 'male' || child.gender === 'female')
+  )
+}
+
+const canProceed = computed(() => {
+  if (choice.value !== 'register') return true
+  if (children.value.length === 0) return false
+  return children.value.every(isChildComplete)
+})
+
+watch(
+  [choice, children],
+  () => emit('update:canProceed', canProceed.value),
+  { immediate: true, deep: true },
+)
 
 function requestNext() {
   if (choice.value === 'register') {

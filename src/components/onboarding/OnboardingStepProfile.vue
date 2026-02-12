@@ -72,6 +72,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   'update-data': [data: { nickname: string; profileImageUrl: string | null }]
+  'update:canProceed': [value: boolean]
   next: []
 }>()
 
@@ -90,6 +91,12 @@ const canProceed = computed(() => {
   const hasImageChoice = true
   return hasNickname && noNicknameError && hasImageChoice
 })
+
+watch(
+  [nickname, nicknameError],
+  () => emit('update:canProceed', canProceed.value),
+  { immediate: true },
+)
 
 function validateNickname() {
   const value = nickname.value.trim()
