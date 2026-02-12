@@ -201,18 +201,18 @@ watch(profileImageUrl, () => {
 .profile-image-btn {
   flex-shrink: 0;
   padding: 0;
-  border: 2px solid transparent;
+  border: 1px solid v.$color-bg-base;
   border-radius: 50%;
   cursor: pointer;
   background: none;
-  transition: border-color v.$transition-fast, box-shadow v.$transition-fast;
+  transition: box-shadow v.$transition-fast;
 
   &:hover {
-    border-color: v.$color-border-base;
+    box-shadow: 0 0 0 2px v.$color-border-focus;
   }
 
   &.selected {
-    border-color: v.$color-border-base;
+    box-shadow: 0 0 0 2px v.$color-border-focus;
   }
 }
 

@@ -1,4 +1,5 @@
 <template>
+  <div class="onboarding-wrap">
   <div class="onboarding-container">
     <div class="onboarding-header">
       <h2 class="onboarding-title">{{ currentStepConfig.title }}</h2>
@@ -42,6 +43,7 @@
               {{ isLastStep ? "완료" : "다음" }}
             </button>
           </div>
+  </div>
   </div>
 </template>
 
@@ -277,13 +279,24 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.onboarding-wrap {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-color: v.$color-bg-base;
+}
+
 .onboarding-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  justify-content: flex-end;
+  height: 80dvh;
   max-width: 600px;
+  width: 100%;
   padding: v.$space-lg;
   margin: 0 auto;
+  box-sizing: border-box;
   background-color: v.$color-bg-base;
 }
 

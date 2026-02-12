@@ -80,8 +80,8 @@ const avatarLetter = computed(() => {
 }
 
 .avatar--md {
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.25rem;
+  height: 3.25rem;
 }
 
 .avatar--lg {
