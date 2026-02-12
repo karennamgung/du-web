@@ -1,112 +1,81 @@
 <template>
-  <div class="onboarding-step">
-    <h1 class="step-title">아이를 등록해주세요</h1>
-    <p class="step-description">맞춤형 교육 정보를 제공하기 위해 아이 정보가 필요해요.</p>
-
-    <div class="children-list">
-      <div
-        v-for="(child, index) in children"
-        :key="index"
-        class="child-card"
-      >
-        <div class="child-header">
-          <h3>{{ getChildLabel(index) }}</h3>
+  <div class="step-body">
+    <div class="children-choice" role="radiogroup" aria-label="자녀 등록 여부">
+      <div class="children-choice__option children-choice__option--with-body">
+        <label class="radio-selector radio-selector--with-label children-choice__label">
+          <span class="radio-selector__circle">
+            <input
+              type="radio"
+              class="radio-selector__input"
+              name="onboarding-children-choice"
+              value="register"
+              :checked="choice === 'register'"
+              @change="choice = 'register'"
+            />
+            <span class="radio-selector__dot" aria-hidden="true" />
+          </span>
+          <span class="radio-selector__label">자녀를 등록합니다</span>
+        </label>
+        <div v-show="choice === 'register'" class="children-choice__body">
+          <div class="children-list">
+            <ProfileCard
+              v-for="(child, index) in children"
+              :key="index"
+              variant="child"
+              :order-label="getChildLabel(index)"
+              :child="child"
+              :child-form="child"
+              :show-selector="false"
+              :show-edit="true"
+              :show-delete="index > 0"
+              :is-editing="true"
+              :can-save-child="true"
+              :hide-save-cancel="index === 0"
+              with-card-style
+              @update:child-form="(f) => Object.assign(child, f)"
+              @delete="removeChild(index)"
+            />
+          </div>
           <button
             type="button"
-            class="btn btn-ghost btn-small"
-            @click="removeChild(index)"
+            class="btn btn-gray w-full mt-lg"
+            @click="addChild"
           >
-            삭제
+            <Icon class="icon-sm" :path="mdiPlus" />
+            자녀 추가하기
           </button>
         </div>
-        <div class="child-form">
-          <div class="input-group">
-            <label>아이 이름</label>
+      </div>
+      <div
+        v-for="opt in otherOptions"
+        :key="opt.value"
+        class="children-choice__option"
+      >
+        <label class="radio-selector radio-selector--with-label children-choice__label">
+          <span class="radio-selector__circle">
             <input
-              v-model="child.name"
-              type="text"
-              placeholder="이름을 입력해주세요"
-              class="input"
+              type="radio"
+              class="radio-selector__input"
+              name="onboarding-children-choice"
+              :value="opt.value"
+              :checked="choice === opt.value"
+              @change="choice = opt.value"
             />
-          </div>
-          <div class="input-group">
-            <label>나이</label>
-            <input
-              :model-value="child.age"
-              type="number"
-              placeholder="예: 10"
-              class="input"
-              min="0"
-              max="100"
-              @input="(e) => (child.age = Math.max(0, Math.min(100, Number((e.target as HTMLInputElement).value) || 0)))"
-            />
-          </div>
-          <div class="input-group">
-            <label>성별</label>
-            <div class="radio-selector-group">
-              <label class="radio-selector radio-selector--with-label">
-                <span class="radio-selector__circle">
-                  <input
-                    type="radio"
-                    class="radio-selector__input"
-                    :name="`onboarding-gender-${index}`"
-                    value="male"
-                    :checked="child.gender === 'male'"
-                    @change="child.gender = 'male'"
-                  />
-                  <span class="radio-selector__dot" aria-hidden="true" />
-                </span>
-                <span class="radio-selector__label">남아</span>
-              </label>
-              <label class="radio-selector radio-selector--with-label">
-                <span class="radio-selector__circle">
-                  <input
-                    type="radio"
-                    class="radio-selector__input"
-                    :name="`onboarding-gender-${index}`"
-                    value="female"
-                    :checked="child.gender === 'female'"
-                    @change="child.gender = 'female'"
-                  />
-                  <span class="radio-selector__dot" aria-hidden="true" />
-                </span>
-                <span class="radio-selector__label">여아</span>
-              </label>
-            </div>
-          </div>
-        </div>
+            <span class="radio-selector__dot" aria-hidden="true" />
+          </span>
+          <span class="radio-selector__label">{{ opt.label }}</span>
+        </label>
       </div>
     </div>
-
-    <button
-      type="button"
-      class="btn btn-outline w-full"
-      @click="addChild"
-    >
-      + 아이 추가하기
-    </button>
-
-    <button
-      type="button"
-      class="btn btn-outline w-full mt-md"
-      @click="handleNoChildren"
-    >
-      무자녀
-    </button>
-
-    <button
-      type="button"
-      class="btn btn-primary w-full mt-xl"
-      @click="handleNext"
-    >
-      완료
-    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import Icon from '@/components/shared/Icon.vue'
+import { mdiPlus } from '@mdi/js'
+import { ref, computed, watch } from 'vue'
 import { getChildOrderLabel } from '@/stores/profile'
+import ProfileCard from '@/components/profile/ProfileCard.vue'
 
 interface Child {
   name: string
@@ -125,6 +94,17 @@ const emit = defineEmits<{
   'update-data': [data: { children: Child[] }]
   complete: []
 }>()
+
+type ChildrenChoice = 'register' | 'no_children' | 'later'
+
+const childrenOptions: { value: ChildrenChoice; label: string }[] = [
+  { value: 'register', label: '자녀를 등록합니다' },
+  { value: 'no_children', label: '무자녀 입니다' },
+  { value: 'later', label: '다음에 등록할게요' },
+]
+const otherOptions = childrenOptions.filter((o) => o.value !== 'register')
+
+const choice = ref<ChildrenChoice>('register')
 
 const children = ref<Child[]>(
   props.onboardingData.children.length > 0
@@ -159,21 +139,22 @@ function removeChild(index: number) {
   emit('update-data', { children: children.value })
 }
 
-function handleNoChildren() {
-  children.value = []
-  emit('update-data', { children: [] })
+const canProceed = computed(() => true)
+
+function requestNext() {
+  if (choice.value === 'register') {
+    const validChildren = children.value.filter((child) => child.name.trim().length > 0)
+    emit('update-data', { children: validChildren })
+  } else {
+    emit('update-data', { children: [] })
+  }
   emit('complete')
 }
 
-function handleNext() {
-  console.log('[OnboardingStepChildren] 완료 버튼 클릭')
-  // 빈 아이 정보 필터링
-  const validChildren = children.value.filter((child) => child.name.trim().length > 0)
-  console.log('[OnboardingStepChildren] 유효한 아이 수:', validChildren.length)
-  emit('update-data', { children: validChildren })
-  // 완료 이벤트 발생 (온보딩 전체 완료)
-  emit('complete')
-}
+defineExpose({
+  requestNext,
+  canProceed,
+})
 
 watch(
   children,
@@ -185,65 +166,36 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-.onboarding-step {
+.step-body {
   display: flex;
   flex-direction: column;
   gap: v.$space-lg;
 }
 
-.step-title {
-  @include v.text-heading-lg;
-  margin: 0;
+.children-choice {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-xl;
 }
 
-.step-description {
-  @include v.text-body;
-  color: v.$color-text-dim;
-  margin: 0;
+.children-choice__option--with-body {
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-sm;
 }
+
+.children-choice__body {
+  padding-left: calc(v.$space-sm + 1.25rem);
+}
+
 
 .children-list {
   display: flex;
   flex-direction: column;
-  gap: v.$space-lg;
-}
-
-.child-card {
-  padding: v.$space-lg;
-  background-color: v.$color-bg-dim;
-  border-radius: v.$radius-md;
-}
-
-.child-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: v.$space-md;
-
-  h3 {
-    @include v.text-heading-sm;
-    margin: 0;
-  }
-}
-
-.child-form {
-  display: flex;
-  flex-direction: column;
-  gap: v.$space-md;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
   gap: v.$space-sm;
-
-  label {
-    @include v.text-heading-sm;
-  }
-
-  .input {
-    @include v.input-base;
-  }
 }
 
+.children-list :deep(.profile-card) {
+  padding-left: 0;
+}
 </style>

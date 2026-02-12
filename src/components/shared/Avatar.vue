@@ -6,7 +6,13 @@
       :alt="nickname || '프로필'"
       class="avatar__img"
     />
-    <p v-else class="avatar__letter type-weight-semibold">
+    <span
+      v-else-if="placeholderLabel"
+      class="type-size-xs color-dimmer type-weight-semibold"
+    >
+      {{ placeholderLabel }}
+    </span>
+    <p v-else class="color-inverse type-weight-semibold">
       {{ avatarLetter }}
     </p>
   </div>
@@ -28,8 +34,10 @@ const props = withDefaults(
     nickname?: string
     /** 크기: sm(헤더 등), md(온보딩 그리드 등), lg */
     size?: 'sm' | 'md' | 'lg'
+    /** 이미지가 없을 때 표시할 문구 (예: '이미지 업로드'). 있으면 글자 대신 이 문구 표시 */
+    placeholderLabel?: string
   }>(),
-  { nickname: '', size: 'md' }
+  { nickname: '', size: 'md', placeholderLabel: '' }
 )
 
 const sizeClass = computed(() => `avatar--${props.size}`)
@@ -62,7 +70,8 @@ const avatarLetter = computed(() => {
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
-  background: v.$color-bg-dimmer;
+  background-color: v.$color-bg-strongest;
+  word-break: keep-all;
 }
 
 .avatar--sm {
@@ -71,8 +80,8 @@ const avatarLetter = computed(() => {
 }
 
 .avatar--md {
-  width: 4rem;
-  height: 4rem;
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
 .avatar--lg {
@@ -84,16 +93,5 @@ const avatarLetter = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.avatar__letter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  background-color: v.$color-bg-strongest;
-  color: v.$color-text-inverse;
 }
 </style>

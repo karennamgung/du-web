@@ -41,7 +41,7 @@ $color-border-dim: c.$gray-200;     // bg-dim과 동일
 $color-border-base: c.$gray-400;    // 기본 테두리
 $color-border-strong: c.$gray-500;  // bg-strong과 동일
 $color-border-stronger: c.$gray-700; // bg-stronger와 동일
-$color-border-focus: $color-primary;
+$color-border-focus: c.$gray-900;
 
 // ---- Form (input radio 등) ----
 $color-radio: c.$primary-500;

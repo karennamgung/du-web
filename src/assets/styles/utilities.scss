@@ -89,13 +89,20 @@ h1 {
   margin: 0;
 }
 h2 {
+  font-size: t.$font-size-xl;
+  font-weight: t.$font-weight-semibold;
+  line-height: t.$line-height-tight;
+  color: c.$color-text-base;
+  margin: 0;
+}
+h3 {
   font-size: t.$font-size-lg;
   font-weight: t.$font-weight-semibold;
   line-height: t.$line-height-relaxed;
   color: c.$color-text-base;
   margin: 0;
 }
-h3, h4 {
+h4 {
   font-size: t.$font-size-md;
   font-weight: t.$font-weight-semibold;
   line-height: t.$line-height-relaxed;

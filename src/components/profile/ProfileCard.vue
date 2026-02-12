@@ -25,7 +25,10 @@
       @keydown.enter.space.prevent="onContentClick"
     >
       <!-- 상단 우측: 비수정 시 삭제(자녀만)·연필(수정), 수정 시 취소·저장 -->
-      <div v-if="showEdit || isEditing" class="card-actions-top">
+      <div
+        v-if="(showEdit || isEditing) && !(isEditing && hideSaveCancel)"
+        class="card-actions-top"
+      >
         <template v-if="!isEditing">
           <button
             v-if="variant === 'child' && showDelete"
@@ -46,23 +49,25 @@
           </button>
         </template>
         <template v-else>
-          <button
-            type="button"
-            class="btn btn-icon-only color-dim"
-            aria-label="취소"
-            @click.stop="$emit('cancel')"
-          >
-            <Icon class="icon-sm" :path="mdiClose" />
-          </button>
-          <button
-            type="button"
-            class="btn btn-icon-only color-dim"
-            :disabled="!canSaveCurrent"
-            aria-label="저장"
-            @click.stop="$emit('save')"
-          >
-            <Icon class="icon-sm" :path="mdiCheck" />
-          </button>
+          <template v-if="!hideSaveCancel">
+            <button
+              type="button"
+              class="btn btn-icon-only color-dim"
+              aria-label="취소"
+              @click.stop="$emit('cancel')"
+            >
+              <Icon class="icon-sm" :path="mdiClose" />
+            </button>
+            <button
+              type="button"
+              class="btn btn-icon-only color-dim"
+              :disabled="!canSaveCurrent"
+              aria-label="저장"
+              @click.stop="$emit('save')"
+            >
+              <Icon class="icon-sm" :path="mdiCheck" />
+            </button>
+          </template>
         </template>
       </div>
 
@@ -131,7 +136,7 @@
                     />
                     <span class="radio-selector__dot" aria-hidden="true" />
                   </span>
-                  <span class="radio-selector__label">남아</span>
+                  <span class="radio-selector__label-sm">남아</span>
                 </label>
                 <label class="radio-selector radio-selector--with-label">
                   <span class="radio-selector__circle">
@@ -145,7 +150,7 @@
                     />
                     <span class="radio-selector__dot" aria-hidden="true" />
                   </span>
-                  <span class="radio-selector__label">여아</span>
+                  <span class="radio-selector__label-sm">여아</span>
                 </label>
               </div>
             </template>
@@ -185,6 +190,8 @@ const props = withDefaults(
     canSaveChild?: boolean;
     currentYear?: number;
     showDelete?: boolean;
+    /** true면 수정 시 취소·저장 버튼 숨김 (예: 온보딩 첫째 아이) */
+    hideSaveCancel?: boolean;
     /** true면 배경색·border-radius 적용 (자녀 추가하기 카드 등) */
     withCardStyle?: boolean;
   }>(),
@@ -195,6 +202,7 @@ const props = withDefaults(
     showSelector: true,
     isEditing: false,
     showDelete: false,
+    hideSaveCancel: false,
     profileForm: () => ({ nickname: "" }),
     canSaveProfile: false,
     childForm: () => ({ name: "", age: 0, gender: null }),

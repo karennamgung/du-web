@@ -1,56 +1,25 @@
 <template>
-  <div class="onboarding-step">
-    <h1 class="step-title">돼지언니와 처음 만나셨네요. 환영해요.</h1>
-    <p class="step-description">어떤 유형인지 알려주세요.</p>
-
-    <div class="user-type-options">
-      <button
-        type="button"
-        class="user-type-card"
-        :class="{ active: selectedType === 'parent' }"
-        @click="selectType('parent')"
-      >
-        <div class="user-type-icon">👨‍👩‍👧</div>
-        <h3>학부모</h3>
-        <p>자녀의 교육을 위해 찾아오셨나요?</p>
-      </button>
-
-      <button
-        type="button"
-        class="user-type-card"
-        :class="{ active: selectedType === 'student' }"
-        @click="selectType('student')"
-      >
-        <div class="user-type-icon">🎓</div>
-        <h3>학생</h3>
-        <p>직접 교육 정보를 찾고 계신가요?</p>
-      </button>
-
-      <button
-        type="button"
-        class="user-type-card"
-        :class="{ active: selectedType === 'academy' }"
-        @click="selectType('academy')"
-      >
-        <div class="user-type-icon">🏫</div>
-        <h3>학원</h3>
-        <p>학원을 등록하고 관리하시나요?</p>
-      </button>
-    </div>
-
+  <div class="user-type-options">
     <button
+      v-for="opt in userTypeOptions"
+      :key="opt.type"
       type="button"
-      class="btn btn-primary w-full mt-xl"
-      :disabled="!selectedType"
-      @click="handleNext"
+      class="user-type-card"
+      :class="{ active: selectedType === opt.type }"
+      @click="selectType(opt.type)"
     >
-      다음
+      <div class="user-type-card__body">
+        <div class="user-type-card__icon mb-sm">{{ opt.icon }}</div>
+        <h4>{{ opt.title }}</h4>
+        <p>{{ opt.desc }}</p>
+      </div>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { USER_TYPE_LABELS } from '@/stores/profile'
 
 interface Props {
   onboardingData: {
@@ -64,84 +33,75 @@ const emit = defineEmits<{
   next: []
 }>()
 
-const selectedType = ref<'parent' | 'student' | 'academy' | null>(props.onboardingData.userType)
+type UserType = 'parent' | 'student' | 'academy'
+
+const userTypeOptions: { type: UserType; title: string; icon: string; desc: string }[] = [
+  { type: 'parent', title: USER_TYPE_LABELS.parent, icon: '👨‍👩‍👧', desc: '자녀의 교육을 위해 찾고싶어요' },
+  { type: 'student', title: USER_TYPE_LABELS.student, icon: '🎓', desc: '직접 교육 정보를 찾고있어요' },
+  { type: 'academy', title: USER_TYPE_LABELS.academy, icon: '🏫', desc: '학원을 등록하고 관리하고 싶어요' },
+]
+
+const selectedType = ref<UserType | null>(props.onboardingData.userType)
 
 watch(selectedType, () => {
   emit('update-data', { userType: selectedType.value })
 })
 
-function selectType(type: 'parent' | 'student' | 'academy') {
+function selectType(type: UserType) {
   selectedType.value = type
 }
 
-function handleNext() {
+const canProceed = computed(() => !!selectedType.value)
+
+function requestNext() {
   if (selectedType.value) {
     emit('next')
   }
 }
+
+defineExpose({
+  requestNext,
+  canProceed,
+})
 </script>
 
 <style lang="scss" scoped>
-.onboarding-step {
-  display: flex;
-  flex-direction: column;
-  gap: v.$space-lg;
-}
-
-.step-title {
-  @include v.text-heading-lg;
-  margin: 0;
-}
-
-.step-description {
-  @include v.text-body;
-  color: v.$color-text-dim;
-  margin: 0;
-}
-
 .user-type-options {
   display: flex;
   flex-direction: column;
-  gap: v.$space-md;
+  gap: v.$space-sm;
 }
 
 .user-type-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: v.$space-sm;
-  padding: v.$space-xl;
-  background-color: v.$color-bg-base;
-  border: 2px solid v.$color-border-dim;
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 2px solid transparent;
   border-radius: v.$radius-md;
+  padding: v.$space-lg;
   cursor: pointer;
-  transition: all v.$transition-base;
+  background: none;
+  background-color: v.$color-bg-dimmer;
+  transition: border-color v.$transition-fast, background-color v.$transition-fast;
+  gap: v.$space-sm;
 
   &:hover {
-    border-color: v.$color-primary;
-    background-color: v.$color-primary-dimmer;
+      background-color: v.$color-bg-dim;
   }
 
   &.active {
-    border-color: v.$color-primary;
-    background-color: v.$color-primary-dimmer;
-    box-shadow: 0 0 0 2px v.$color-primary-dimmer;
-  }
-
-  h3 {
-    @include v.text-heading-md;
-    margin: 0;
-  }
-
-  p {
-    @include v.text-caption-sm;
-    margin: 0;
-    text-align: center;
+    border-color: v.$color-border-stronger;
   }
 }
 
-.user-type-icon {
-  font-size: 3rem;
+.user-type-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.user-type-card__icon {
+  font-size: 2.5rem;
   line-height: 1;
 }
 </style>

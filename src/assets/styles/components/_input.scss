@@ -15,6 +15,15 @@
   @include m.input-base;
 }
 
+// ---- 입력 필드 에러 메시지 ----
+.input-error {
+  margin: 0;
+  margin-left: s.$space-lg;
+  font-size: t.$font-size-xs;
+  color: c.$color-primary;
+}
+
+
 .input-underline {
   box-sizing: border-box;
   width: 100%;
@@ -89,8 +98,42 @@
   }
 }
 
+// ---- Checkbox (라벨 + input[type="checkbox"] 공통) ----
+.input-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: s.$space-sm;
+  font-size: t.$font-size-base;
+  font-weight: t.$font-weight-medium;
+  color: c.$color-text-base;
+  line-height: t.$line-height-relaxed;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    appearance: none;
+    box-sizing: border-box;
+    border-radius: 2px;
+    background-color: c.$color-bg-base;
+    box-shadow: inset 0 0 0 2px c.$color-border-base;
+    transition: box-shadow e.$transition-fast, background-color e.$transition-fast;
+
+    &:checked {
+      box-shadow: inset 0 0 0 2px c.$color-primary;
+      background-color: c.$color-primary;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 5l3 3 7-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 0.625rem 0.5rem;
+    }
+  }
+}
+
 // ---- Radio selector (동그라미 + 선택 시 primary, shadow) ----
-// 카드 선택용: .radio-selector가 동그라미. 라벨용: .radio-selector__circle이 동그라미.
 @mixin radio-selector-circle {
   display: inline-flex;
   align-items: center;
@@ -179,7 +222,17 @@
   flex-wrap: wrap;
 }
 
+
 .radio-selector__label {
+  font-size: t.$font-size-base;
+  font-weight: t.$font-weight-medium;
+  color: c.$color-text-base;
+  line-height: t.$line-height-tight;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-selector__label-sm {
   font-size: t.$font-size-sm;
   font-weight: t.$font-weight-medium;
   color: c.$color-text-base;

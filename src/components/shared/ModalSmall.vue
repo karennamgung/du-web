@@ -130,7 +130,7 @@ function handleCancel() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: v.$space-lg v.$space-lg v.$space-sm v.$space-lg;
+  padding: v.$space-lg;
 }
 
 .modal-body {

@@ -98,8 +98,8 @@
 </template>
 
 <script setup lang="ts">
-import CommentComposer from '@/components/CommentComposer.vue'
-import CommentList from '@/components/CommentList.vue'
+import CommentComposer from '@/components/academypage/CommentComposer.vue'
+import CommentList from '@/components/academypage/CommentList.vue'
 import LoginModal from '@/components/modals/LoginModal.vue'
 import Tag from '@/components/shared/Tag.vue'
 import Icon from '@/components/shared/Icon.vue'
