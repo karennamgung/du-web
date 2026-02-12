@@ -124,7 +124,7 @@ const steps = computed((): StepConfig[] => {
   };
 
   if (onboardingData.value.userType === "parent") {
-    return [terms, userType, children, profile, residence];
+    return [terms, userType, profile, children, residence];
   }
   return [terms, userType, profile, residence];
 });

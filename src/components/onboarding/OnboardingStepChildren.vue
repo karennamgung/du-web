@@ -210,7 +210,7 @@ watch(
 .children-list {
   display: flex;
   flex-direction: column;
-  gap: v.$space-sm;
+  gap: v.$space-md;
 }
 
 .children-list :deep(.profile-card) {
