@@ -207,8 +207,10 @@ watch(profileImageUrl, () => {
   background: none;
   transition: box-shadow v.$transition-fast;
 
-  &:hover {
-    box-shadow: 0 0 0 2px v.$color-border-focus;
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: 0 0 0 2px v.$color-border-focus;
+    }
   }
 
   &.selected {

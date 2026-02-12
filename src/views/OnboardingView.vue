@@ -139,7 +139,7 @@ const isLastStep = computed(
   () => currentStep.value >= steps.value.length - 1 && steps.value.length > 0,
 );
 
-const stepCanProceed = computed(() => stepRef.value?.canProceed?.value ?? true);
+const stepCanProceed = computed(() => stepRef.value?.canProceed?.value ?? false);
 
 function onPrimaryAction() {
   stepRef.value?.requestNext();
