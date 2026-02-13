@@ -15,6 +15,9 @@ export interface Database {
           name: string
           address: string
           address_road: string | null
+          address_sido: string | null
+          address_gugun: string | null
+          address_dong: string | null
           lat: number
           lng: number
           subjects: string[]

@@ -308,17 +308,35 @@ let myLocationMarker: unknown = null
 
 
 
+/** 학원이 선택된 주소 목록 중 하나라도 해당하는지: 정규화 컬럼 우선, 없으면 지번·도로명 문자열로 판단 */
+function academyMatchesAnySelectedAddress(a: Academy): boolean {
+  const addrs = myNeighborhood.selectedAddresses
+  if (!addrs?.length) return true
+  return addrs.some((addr) => {
+    if (!addr.sido || !addr.gugun) return true
+    if (a.address_sido != null && a.address_gugun != null) {
+      if (a.address_sido !== addr.sido || a.address_gugun !== addr.gugun) return false
+      if (addr.dong && !addr.dong.endsWith('전체')) {
+        if (a.address_dong != null && a.address_dong !== addr.dong) return false
+      }
+      return true
+    }
+    const text = [a.address, a.address_road].filter(Boolean).join(' ')
+    if (!text) return false
+    if (!text.includes(addr.sido) || !text.includes(addr.gugun)) return false
+    if (addr.dong && !addr.dong.endsWith('전체') && !text.includes(addr.dong)) return false
+    return true
+  })
+}
+
 const filteredAcademies = computed(() => {
   const ageFilter = selectedAgeGroups.value
   const subFilter = selectedSubjects.value
   const bounds = visibleBoundsFilter.value
-  const neighborhoodBoundary = myNeighborhood.boundary
-  // 연령·과목·현재 보이는 지역 필터만 적용 (검색어는 목록/지도 필터에 사용하지 않음)
-  const baseList = academies.value.filter((a) => {
-    // 유효한 연령 그룹만 필터링에 사용
+  const addrs = myNeighborhood.selectedAddresses
+  return academies.value.filter((a) => {
     const validAgeGroups = (a.age_group ?? []).filter(isValidAgeGroup)
     const matchAge = ageFilter.length === 0 || ageFilter.some((g) => isValidAgeGroup(g) && validAgeGroups.includes(g))
-    // 유효한 과목만 필터링에 사용 (통합 과목명 기준: 코딩=로봇, 음악=피아노, 미술=디자인, 스포츠=축구/농구/수영/체육)
     const validSubjects = (a.subjects ?? []).filter(isValidSubject)
     const matchSub =
       subFilter.length === 0 ||
@@ -326,6 +344,7 @@ const filteredAcademies = computed(() => {
         validSubjects.some((academySubject) => getCanonicalSubject(academySubject) === selectedCanonical)
       )
     if (!matchAge || !matchSub) return false
+    if (addrs?.length && !academyMatchesAnySelectedAddress(a)) return false
     if (bounds) {
       const lat = a.lat ?? 0
       const lng = a.lng ?? 0
@@ -333,19 +352,6 @@ const filteredAcademies = computed(() => {
     }
     return true
   })
-  // 내 동네: 동 이름/주소가 아니라 boundary(경계) 안에 있는 학원만 표시
-  if (!neighborhoodBoundary) return baseList
-  const byBoundary = baseList.filter((a) => {
-    const lat = a.lat ?? 0
-    const lng = a.lng ?? 0
-    return (
-      lat >= neighborhoodBoundary.sw.lat &&
-      lat <= neighborhoodBoundary.ne.lat &&
-      lng >= neighborhoodBoundary.sw.lng &&
-      lng <= neighborhoodBoundary.ne.lng
-    )
-  })
-  return byBoundary.length > 0 ? byBoundary : baseList
 })
 
 const sortedAcademyList = computed(() => {
@@ -543,7 +549,7 @@ async function initMap(academyList: Academy[]) {
   mapReady.value = true
 
   updateMarkers(academyList)
-  // '위치 찾기' 클릭 후 지도로 온 경우: 내 위치 표시 후 플래그 해제
+  // 위치 찾기 클릭 후 지도로 온 경우: 내 위치 표시 후 플래그 해제
   if (myNeighborhood.requestShowMyLocation) {
     showMyLocation()
     myNeighborhood.requestShowMyLocation = false
@@ -551,6 +557,13 @@ async function initMap(academyList: Academy[]) {
   // 학원 상세 등에서 지도로 돌아온 경우: 저장된 내 위치 마커 복원
   else if (myNeighborhood.lastLocation) {
     showMyLocationAt(myNeighborhood.lastLocation.lat, myNeighborhood.lastLocation.lng)
+  }
+  // 위치 선택 적용 후 지도로 온 경우: 선택한 동네 학원 밀집 영역으로 이동
+  if (myNeighborhood.requestFitMapToSelectedAddress) {
+    nextTick(() => {
+      fitMapToAcademyList(academyList)
+      myNeighborhood.requestFitMapToSelectedAddress = false
+    })
   }
 }
 
@@ -675,7 +688,44 @@ function fitMapToMyLocationAndCluster(lat: number, lng: number) {
   }
 }
 
-/** 내 위치 마커를 (lat, lng)에 표시하고 fitBounds (저장된 위치 복원 또는 getCurrentPosition 성공 후 호출) */
+/** 선택한 동네의 학원 목록이 보이도록 지도 뷰 이동 (위치 선택 적용 시) */
+function fitMapToAcademyList(academyList: Academy[]) {
+  const maps = getMaps()
+  if (!maps || !map) return
+  const withCoord = academyList.filter((a): a is Academy & { lat: number; lng: number } => a.lat != null && a.lng != null)
+  if (withCoord.length === 0) return
+  const m = map as {
+    fitBounds?: (bounds: unknown, options?: { top?: number; right?: number; bottom?: number; left?: number; maxZoom?: number }) => void
+    setCenter?: (c: unknown) => void
+    setZoom?: (z: number) => void
+  }
+  const FIT_MARGIN = 48
+  const FIT_MAX_ZOOM = 16
+  if (withCoord.length === 1) {
+    const c = new maps.LatLng(withCoord[0].lat, withCoord[0].lng)
+    if (typeof m.setCenter === 'function') m.setCenter(c)
+    if (typeof m.setZoom === 'function') m.setZoom(15)
+    return
+  }
+  if (typeof m.fitBounds === 'function') {
+    const coords = withCoord.map((a) => new maps.LatLng(a.lat, a.lng))
+    m.fitBounds(coords, {
+      top: FIT_MARGIN,
+      right: FIT_MARGIN,
+      bottom: FIT_MARGIN,
+      left: FIT_MARGIN,
+      maxZoom: FIT_MAX_ZOOM,
+    })
+  } else {
+    const centerLat = withCoord.reduce((s, x) => s + x.lat, 0) / withCoord.length
+    const centerLng = withCoord.reduce((s, x) => s + x.lng, 0) / withCoord.length
+    const center = new maps.LatLng(centerLat, centerLng)
+    if (typeof m.setCenter === 'function') m.setCenter(center)
+    if (typeof m.setZoom === 'function') m.setZoom(15)
+  }
+}
+
+/** 내 위치 마커를 (lat, lng)에 표시하고 fitBounds (위치 찾기 또는 복원 시) */
 function showMyLocationAt(lat: number, lng: number) {
   const maps = getMaps()
   if (!maps || !map) return
@@ -697,7 +747,7 @@ function showMyLocationAt(lat: number, lng: number) {
         size: new Size(MARKER_ICON_SIZE, MARKER_ICON_SIZE),
         anchor: new Point(MARKER_ICON_SIZE / 2, MARKER_ICON_SIZE / 2),
       },
-      zIndex: 300, // 학원 마커(호버 200)보다 위에 표시
+      zIndex: 300,
     })
     fitMapToMyLocationAndCluster(lat, lng)
   } catch {
@@ -705,7 +755,7 @@ function showMyLocationAt(lat: number, lng: number) {
   }
 }
 
-/** 내 현재 위치를 지도에 표시; 줌은 내 위치와 학원 밀집 지역이 모두 보이도록 fitBounds (위치 찾기 클릭 시 호출) */
+/** 내 현재 위치를 지도에 표시 (위치 찾기 클릭 시 호출) */
 function showMyLocation() {
   if (!map || !navigator.geolocation) return
   navigator.geolocation.getCurrentPosition(
@@ -714,9 +764,7 @@ function showMyLocation() {
       const lng = position.coords.longitude
       showMyLocationAt(lat, lng)
     },
-    () => {
-      // 권한 거부 또는 조회 실패 시 무시 (알림 없음)
-    },
+    () => {},
     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
   )
 }
@@ -1069,24 +1117,37 @@ function destroyMap() {
 }
 
 async function fetchAcademies(): Promise<Academy[]> {
-  const withImage = await supabase.from('academies').select('id, name, address, address_road, lat, lng, subjects, age_group, image_url, ai_analysis')
+  const cols = 'id, name, address, address_road, address_sido, address_gugun, address_dong, lat, lng, subjects, age_group, image_url, ai_analysis'
+  const withImage = await supabase.from('academies').select(cols)
   if (!withImage.error) {
-    return (withImage.data ?? []).map((row) => ({
-      id: row.id,
-      name: row.name,
-      address: row.address ?? '',
-      address_road: (row as { address_road?: string | null }).address_road ?? null,
-      lat: row.lat,
-      lng: row.lng,
-      subjects: row.subjects ?? [],
-      age_group: row.age_group ?? null,
-      image_url: row.image_url ?? null,
-      ai_analysis: (row as { ai_analysis?: string | null }).ai_analysis ?? null,
-    }))
+    return (withImage.data ?? []).map((row) => {
+      const r = row as {
+        address_road?: string | null
+        address_sido?: string | null
+        address_gugun?: string | null
+        address_dong?: string | null
+        ai_analysis?: string | null
+      }
+      return {
+        id: row.id,
+        name: row.name,
+        address: row.address ?? '',
+        address_road: r.address_road ?? null,
+        address_sido: r.address_sido ?? null,
+        address_gugun: r.address_gugun ?? null,
+        address_dong: r.address_dong ?? null,
+        lat: row.lat,
+        lng: row.lng,
+        subjects: row.subjects ?? [],
+        age_group: row.age_group ?? null,
+        image_url: row.image_url ?? null,
+        ai_analysis: r.ai_analysis ?? null,
+      }
+    })
   }
   const code = (withImage.error as { code?: string }).code
   const msg = (withImage.error as { message?: string }).message ?? ''
-  if (code === '42703' || msg.includes('image_url') || msg.includes('age_group') || msg.includes('ai_analysis') || msg.includes('address_road')) {
+  if (code === '42703' || msg.includes('image_url') || msg.includes('age_group') || msg.includes('ai_analysis') || msg.includes('address_road') || msg.includes('address_sido')) {
     const { data, error } = await supabase.from('academies').select('id, name, address, lat, lng, subjects, age_group, image_url')
     if (error) throw error
     return (data ?? []).map((row) => ({
@@ -1094,6 +1155,9 @@ async function fetchAcademies(): Promise<Academy[]> {
       name: row.name,
       address: row.address ?? '',
       address_road: null,
+      address_sido: null,
+      address_gugun: null,
+      address_dong: null,
       lat: row.lat,
       lng: row.lng,
       subjects: row.subjects ?? [],
@@ -1194,7 +1258,7 @@ watch(hoveredAcademy, (newHovered, oldHovered) => {
   updateMarkerZIndex()
 })
 
-// '위치 찾기' 클릭 시 지도에 내 위치 표시 (지도 페이지에 있을 때)
+// 위치 찾기 클릭 시 지도에 내 위치 표시 (지도 페이지에 있을 때)
 watch(() => myNeighborhood.requestShowMyLocation, (v) => {
   if (v && map) {
     showMyLocation()
@@ -1202,7 +1266,17 @@ watch(() => myNeighborhood.requestShowMyLocation, (v) => {
   }
 })
 
-// 헤더에서 내 동네 X(해제) 시 지도에서 내 위치 마커도 제거
+// 위치 선택 모달에서 적용 시: 선택한 동네의 학원 밀집 영역으로 지도 이동
+watch(() => myNeighborhood.requestFitMapToSelectedAddress, (v) => {
+  if (v && map) {
+    nextTick(() => {
+      fitMapToAcademyList(filteredAcademies.value)
+      myNeighborhood.requestFitMapToSelectedAddress = false
+    })
+  }
+})
+
+// 헤더에서 동네 해제(X) 시 지도에서 내 위치 마커도 제거
 watch(() => myNeighborhood.lastLocation, (v) => {
   if (v !== null) return
   myLocation.value = null

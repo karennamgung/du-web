@@ -14,16 +14,17 @@ UPDATE public.academies SET address = '인천 연수구 송도2동 33-7', addres
 UPDATE public.academies SET address = '인천 연수구 송도2동 88-8', address_road = '인천 연수구 컨벤시아대로 88' WHERE name = '해법국어영어';
 UPDATE public.academies SET address = '인천 연수구 송도2동 11-9', address_road = '인천 연수구 송도교육로 11' WHERE name = '송도논술학원';
 UPDATE public.academies SET address = '인천 연수구 송도2동 200-10', address_road = '인천 연수구 송도대로 200' WHERE name = '키즈발레학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 50', address_road = '인천 연수구 논현로 50' WHERE name = '논현영어학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 112', address_road = '인천 연수구 청능대로 112' WHERE name = '논현수학학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 98', address_road = '인천 연수구 청능대로 98' WHERE name = '논현코딩센터';
-UPDATE public.academies SET address = '인천 연수구 논현동 88', address_road = '인천 연수구 논현로 88' WHERE name = '논현국어학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 75', address_road = '인천 연수구 청능대로 75' WHERE name = '논현피아노학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 120', address_road = '인천 연수구 논현로 120' WHERE name = '논현미술학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 130', address_road = '인천 연수구 청능대로 130' WHERE name = '논현체육관';
-UPDATE public.academies SET address = '인천 연수구 논현동 65', address_road = '인천 연수구 논현로 65' WHERE name = '논현국영수';
-UPDATE public.academies SET address = '인천 연수구 논현동 90', address_road = '인천 연수구 청능대로 90' WHERE name = '논현논술학원';
-UPDATE public.academies SET address = '인천 연수구 논현동 95', address_road = '인천 연수구 논현로 95' WHERE name = '논현발레학원';
+-- 인천 논현동 = 남동구 (연수구 아님)
+UPDATE public.academies SET address = '인천 남동구 논현동 50', address_road = '인천 남동구 논현로 50' WHERE name = '논현영어학원';
+UPDATE public.academies SET address = '인천 남동구 논현동 112', address_road = '인천 남동구 청능대로 112' WHERE name = '논현수학학원';
+UPDATE public.academies SET address = '인천 남동구 논현동 98', address_road = '인천 남동구 청능대로 98' WHERE name = '논현코딩센터';
+UPDATE public.academies SET address = '인천 남동구 논현동 88', address_road = '인천 남동구 논현로 88' WHERE name = '논현국어학원';
+UPDATE public.academies SET address = '인천 남동구 논현동 75', address_road = '인천 남동구 청능대로 75' WHERE name = '논현피아노학원';
+UPDATE public.academies SET address = '인천 남동구 논현동 120', address_road = '인천 남동구 논현로 120' WHERE name = '논현미술학원';
+UPDATE public.academies SET address = '인천 남동구 논현동 130', address_road = '인천 남동구 청능대로 130' WHERE name = '논현체육관';
+UPDATE public.academies SET address = '인천 남동구 논현동 65', address_road = '인천 남동구 논현로 65' WHERE name = '논현국영수';
+UPDATE public.academies SET address = '인천 남동구 논현동 90', address_road = '인천 남동구 청능대로 90' WHERE name = '논현논술학원';
+UPDATE public.academies SET address = '인천 남동구 논현동 95', address_road = '인천 남동구 논현로 95' WHERE name = '논현발레학원';
 
 -- 송도 (인천 연수구 송도2동)
 INSERT INTO public.academies (name, address, address_road, lat, lng, subjects, age_group, image_url)

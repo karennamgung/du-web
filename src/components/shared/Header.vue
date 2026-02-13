@@ -27,7 +27,7 @@
           </button>
         </template>
 
-        <!-- 우리 동네 표시 -->
+        <!-- 우리 동네 (위치 찾기 → 동 이름 표시) + 위치 선택 영역 요약 -->
         <template v-if="myNeighborhood.loading">
           <p class="type-size-sm color-dim">가져오는 중…</p>
         </template>
@@ -42,13 +42,30 @@
             <Icon class="icon-2xs color-dim" :path="mdiClose" />
           </button>
         </template>
+        <template v-else-if="myNeighborhood.selectedAddressSummary">
+          <h4>{{ myNeighborhood.selectedAddressSummary }}</h4>
+          <button
+            type="button"
+            class="btn btn-ghost btn-small btn-icon btn-rounded"
+            aria-label="위치 선택 해제"
+            @click="myNeighborhood.setSelectedAddresses([])"
+          >
+            <Icon class="icon-2xs color-dim" :path="mdiClose" />
+          </button>
+        </template>
         <button
-          v-else
+          type="button"
+          class="link"
+          @click="myNeighborhood.showLocationSelectModal = true"
+        >
+          위치 선택
+        </button>
+        <button
           type="button"
           class="link"
           @click="handleLocationClick"
         >
-          위치 찾기
+          내 위치
         </button>
       </div>
     </div>
@@ -99,7 +116,7 @@ import ProfileInfoModal from '@/components/modals/ProfileInfoModal.vue'
 import HeaderUserDropdown from '@/components/HeaderUserDropdown.vue'
 import Avatar from './Avatar.vue'
 import { useProfileStore, getUserTypeLabel } from '@/stores/profile'
-import { mdiClose, mdiChevronLeft, mdiChevronDown } from '@mdi/js'
+import { mdiChevronLeft, mdiChevronDown, mdiClose } from '@mdi/js'
 
 const emit = defineEmits<{ 'open-login': [] }>()
 
@@ -123,6 +140,7 @@ async function handleLocationClick() {
   myNeighborhood.requestShowMyLocation = true
   await myNeighborhood.fetchFromLocation()
 }
+
 </script>
 
 <style lang="scss" scoped>

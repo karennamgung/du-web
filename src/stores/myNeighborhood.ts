@@ -1,30 +1,38 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { mapLocationFinderToAddress } from '@/constants/address'
 
 /** OpenStreetMap Nominatim. 개발 시 Vite 프록시(/api/nominatim) 사용해 CORS 회피 */
 const NOMINATIM_BASE =
   import.meta.env.DEV ? '/api/nominatim' : 'https://nominatim.openstreetmap.org'
 const NOMINATIM_REVERSE_URL = `${NOMINATIM_BASE}/reverse`
-const NOMINATIM_SEARCH_URL = `${NOMINATIM_BASE}/search`
 
-/** 내 동네 경계 (bbox). 학원은 주소가 아니라 이 범위 안에 있으면 표시 */
-export type NeighborhoodBoundary = { sw: { lat: number; lng: number }; ne: { lat: number; lng: number } }
-
+/**
+ * 내 동네 스토어
+ * 위치 찾기: GPS → 역지오코딩으로 동 이름 표시 + 지도에 현재 위치 마커 (경계 필터 없음)
+ */
 export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
   /** 동 이름 (읍/면/동 또는 시/군/구) — 표시용 */
   const name = ref<string | null>(null)
   /** 시·구 등 지역 — 표시용 */
   const region = ref<string | null>(null)
-  /** 내 동네 경계(bbox). 이 범위 안에 있는 학원만 리스트에 표시 (도로명/동 이름 무관) */
-  const boundary = ref<NeighborhoodBoundary | null>(null)
   const loading = ref(false)
   /** 지도에 내 위치 표시 요청 (위치 찾기 클릭 시 true → MapPageView에서 showMyLocation 호출 후 false) */
   const requestShowMyLocation = ref(false)
-  /** 마지막으로 확인한 내 위치 (지도 복귀 시 마커 복원용) */
+  /** 위치 선택 모달에서 적용 후, 선택한 동네의 학원 밀집 영역으로 지도 이동 요청 */
+  const requestFitMapToSelectedAddress = ref(false)
+  /** 마지막으로 확인한 내 위치 (지도 마커·복원용) */
   const lastLocation = ref<{ lat: number; lng: number } | null>(null)
+  /** 위치 선택 모달 열림 여부 */
+  const showLocationSelectModal = ref(false)
+  /** 선택된 주소 목록 (동/읍/면 단위 다중 선택). 학원 필터에 사용 */
+  const selectedAddresses = ref<Array<{ sido: string; gugun: string; dong?: string }>>([])
 
-  /** 역지오코딩: 위경도 → 주소(동 + 시·구) + boundingbox. Nominatim 사용 (CORS 허용). 한국어 주소 요청 */
-  async function reverseGeocode(lat: number, lng: number): Promise<{ name: string; region: string | null; boundary: NeighborhoodBoundary } | null> {
+  /** 역지오코딩: 위경도 → 주소(동 + 시·구). Nominatim 사용, 한국어 주소 요청 */
+  async function reverseGeocode(
+    lat: number,
+    lng: number
+  ): Promise<{ name: string; region: string | null } | null> {
     const params = new URLSearchParams({
       lat: String(lat),
       lon: String(lng),
@@ -48,8 +56,6 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
         city?: string
         state?: string
       }
-      /** [min_lat, max_lat, min_lon, max_lon] */
-      boundingbox?: string[]
     }
     const addr = data?.address
     if (!addr) return null
@@ -65,93 +71,7 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     const regionPart =
       addr.county?.trim() || addr.city?.trim() || addr.state?.trim() || null
     if (!dong) return null
-    // Nominatim boundingbox: [min_lat, max_lat, min_lon, max_lon]
-    const bbox = data.boundingbox
-    let boundaryVal: NeighborhoodBoundary | null = null
-    if (Array.isArray(bbox) && bbox.length >= 4) {
-      const minLat = parseFloat(bbox[0])
-      const maxLat = parseFloat(bbox[1])
-      const minLon = parseFloat(bbox[2])
-      const maxLon = parseFloat(bbox[3])
-      if (!Number.isNaN(minLat) && !Number.isNaN(maxLat) && !Number.isNaN(minLon) && !Number.isNaN(maxLon)) {
-        boundaryVal = { sw: { lat: minLat, lng: minLon }, ne: { lat: maxLat, lng: maxLon } }
-      }
-    }
-    // bbox 없으면 사용자 위치 기준 약 2km 범위를 기본 boundary로 사용
-    const delta = 0.02
-    const fallbackBoundary: NeighborhoodBoundary = boundaryVal ?? {
-      sw: { lat: lat - delta, lng: lng - delta },
-      ne: { lat: lat + delta, lng: lng + delta },
-    }
-    return { name: dong, region: regionPart, boundary: fallbackBoundary }
-  }
-
-  /** 동 이름 + 지역으로 검색해 해당 "동" 전체 행정구역 경계(bbox) 조회 */
-  async function fetchBoundaryByPlaceName(
-    dongName: string,
-    region: string | null
-  ): Promise<NeighborhoodBoundary | null> {
-    const query = [dongName.trim(), region?.trim(), '대한민국'].filter(Boolean).join(' ')
-    if (!query.replace(/대한민국\s*$/, '').trim()) return null
-    const params = new URLSearchParams({
-      q: query,
-      format: 'json',
-      limit: '10',
-      countrycodes: 'kr',
-      addressdetails: '0',
-    })
-    const res = await fetch(`${NOMINATIM_SEARCH_URL}?${params}`, {
-      headers: { 'Accept-Language': 'ko', 'User-Agent': 'DU-Academy-App/1.0' },
-    })
-    if (!res.ok) return null
-    const data = (await res.json()) as Array<{
-      type?: string
-      class?: string
-      boundingbox?: string[]
-      lat?: string
-      lon?: string
-    }>
-    if (!Array.isArray(data) || data.length === 0) return null
-    const bboxToArea = (bbox: string[]) => {
-      if (bbox.length < 4) return 0
-      const minLat = parseFloat(bbox[0])
-      const maxLat = parseFloat(bbox[1])
-      const minLon = parseFloat(bbox[2])
-      const maxLon = parseFloat(bbox[3])
-      if (Number.isNaN(minLat + maxLat + minLon + maxLon)) return 0
-      return (maxLat - minLat) * (maxLon - minLon)
-    }
-    const adminLikeTypes = new Set([
-      'administrative',
-      'suburb',
-      'neighbourhood',
-      'residential',
-      'village',
-      'town',
-      'quarter',
-      'district',
-      'city_block',
-    ])
-    let best: { bbox: string[]; score: number } | null = null
-    for (const item of data) {
-      if (!item) continue
-      const bbox = item.boundingbox
-      if (!Array.isArray(bbox) || bbox.length < 4) continue
-      const area = bboxToArea(bbox)
-      if (area < 1e-10) continue
-      const minLat = parseFloat(bbox[0])
-      const maxLat = parseFloat(bbox[1])
-      const minLon = parseFloat(bbox[2])
-      const maxLon = parseFloat(bbox[3])
-      if (Number.isNaN(minLat + maxLat + minLon + maxLon)) continue
-      const type = (item.type ?? item.class ?? '').toLowerCase()
-      const isAdminLike = adminLikeTypes.has(type) || type.includes('admin') || type.includes('district')
-      const score = (isAdminLike ? 1e6 : 0) + area
-      if (!best || score > best.score) best = { bbox, score }
-    }
-    if (!best) return null
-    const [minLat, maxLat, minLon, maxLon] = best.bbox.map(Number)
-    return { sw: { lat: minLat, lng: minLon }, ne: { lat: maxLat, lng: maxLon } }
+    return { name: dong, region: regionPart }
   }
 
   async function fetchFromLocation(): Promise<void> {
@@ -172,12 +92,28 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
       if (result) {
         name.value = result.name
         region.value = result.region
-        const dongBoundary = await fetchBoundaryByPlaceName(result.name, result.region)
-        boundary.value = dongBoundary ?? result.boundary
+        // 위치 찾기 결과를 address.ts와 매핑 (동 이름은 그대로, address만 연결)
+        const mapped = mapLocationFinderToAddress(result.name)
+        if (mapped?.sido && mapped?.gugun) {
+          selectedAddresses.value = [
+            {
+              sido: mapped.sido,
+              gugun: mapped.gugun,
+              dong: mapped.dong || undefined,
+            },
+          ]
+        } else {
+          selectedAddresses.value = []
+        }
         try {
           localStorage.setItem(
             'myNeighborhood',
-            JSON.stringify({ name: result.name, region: result.region, boundary: boundary.value, lastLocation: lastLocation.value })
+            JSON.stringify({
+              name: result.name,
+              region: result.region,
+              lastLocation: lastLocation.value,
+              selectedAddresses: selectedAddresses.value,
+            })
           )
         } catch {
           // ignore
@@ -185,13 +121,13 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
       } else {
         name.value = null
         region.value = null
-        boundary.value = null
+        selectedAddresses.value = []
       }
     } catch {
       name.value = null
       region.value = null
-      boundary.value = null
       lastLocation.value = null
+      selectedAddresses.value = []
     } finally {
       loading.value = false
     }
@@ -200,8 +136,8 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
   function clear(): void {
     name.value = null
     region.value = null
-    boundary.value = null
     lastLocation.value = null
+    selectedAddresses.value = []
     try {
       localStorage.removeItem('myNeighborhood')
     } catch {
@@ -209,42 +145,96 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     }
   }
 
+  function setSelectedAddresses(addresses: Array<{ sido: string; gugun: string; dong?: string }>): void {
+    selectedAddresses.value = addresses
+    try {
+      const saved = localStorage.getItem('myNeighborhood')
+      const parsed = saved?.trim() ? (JSON.parse(saved) as Record<string, unknown>) : {}
+      parsed.selectedAddresses = addresses
+      localStorage.setItem('myNeighborhood', JSON.stringify(parsed))
+    } catch {
+      // ignore
+    }
+  }
+
+  /** 단일 주소와 동일한 항목이 있으면 제거, 없으면 추가 */
+  function toggleSelectedAddress(addr: { sido: string; gugun: string; dong?: string }): void {
+    const key = (a: { sido: string; gugun: string; dong?: string }) =>
+      `${a.sido}|${a.gugun}|${a.dong ?? ''}`
+    const targetKey = key(addr)
+    const next = selectedAddresses.value.filter((a) => key(a) !== targetKey)
+    if (next.length === selectedAddresses.value.length) {
+      next.push(addr)
+    }
+    setSelectedAddresses(next)
+  }
+
+  /** 현재 (sido, gugun, dongLabel)이 선택 목록에 있는지. dongLabel이 "XX 전체"면 dong 없음으로 비교 */
+  function isAddressSelected(sido: string, gugun: string, dongLabel: string): boolean {
+    const dong = dongLabel.endsWith('전체') ? undefined : dongLabel
+    return selectedAddresses.value.some(
+      (a) => a.sido === sido && a.gugun === gugun && (a.dong ?? '') === (dong ?? '')
+    )
+  }
+
+  /** 위치 선택 요약 문구 (헤더 표시용). 없으면 null */
+  const selectedAddressSummary = computed(() => {
+    const list = selectedAddresses.value
+    if (!list.length) return null
+    const first = list[0]
+    const sameGugun = list.every((a) => a.sido === first.sido && a.gugun === first.gugun)
+    if (sameGugun && list.length === 1 && first.dong) {
+      return `${first.sido} ${first.gugun} ${first.dong}`
+    }
+    if (sameGugun) {
+      return `${first.sido} ${first.gugun} (${list.length}개 동)`
+    }
+    return `${list.length}개 지역`
+  })
+
   /** 앱 로드 시 localStorage에 저장된 동네가 있으면 복원 */
   function restoreFromStorage(): void {
-    if (name.value) return
     try {
       const saved = localStorage.getItem('myNeighborhood')
       if (!saved?.trim()) return
-      try {
-        const parsed = JSON.parse(saved) as {
-          name?: string
-          region?: string | null
-          boundary?: NeighborhoodBoundary | null
-          lastLocation?: { lat: number; lng: number } | null
-        }
-        if (parsed.name?.trim()) {
-          name.value = parsed.name.trim()
-          region.value = parsed.region?.trim() ?? null
-          boundary.value =
-            parsed.boundary &&
-            typeof parsed.boundary.sw?.lat === 'number' &&
-            typeof parsed.boundary.ne?.lat === 'number'
-              ? parsed.boundary
-              : null
-          if (parsed.lastLocation && typeof parsed.lastLocation.lat === 'number' && typeof parsed.lastLocation.lng === 'number') {
-            lastLocation.value = { lat: parsed.lastLocation.lat, lng: parsed.lastLocation.lng }
-          } else if (boundary.value) {
-            // 예전에 저장된 데이터는 lastLocation이 없을 수 있음 → boundary 중심으로 채워서 지도 마커 복원 가능하게
-            lastLocation.value = {
-              lat: (boundary.value.sw.lat + boundary.value.ne.lat) / 2,
-              lng: (boundary.value.sw.lng + boundary.value.ne.lng) / 2,
-            }
+      const parsed = JSON.parse(saved) as {
+        name?: string
+        region?: string | null
+        lastLocation?: { lat: number; lng: number } | null
+        selectedAddress?: { sido: string; gugun: string; dong?: string } | null
+        selectedAddresses?: Array<{ sido: string; gugun: string; dong?: string }>
+      }
+      if (parsed.name?.trim()) {
+        name.value = parsed.name.trim()
+        region.value = parsed.region?.trim() ?? null
+        if (
+          parsed.lastLocation &&
+          typeof parsed.lastLocation.lat === 'number' &&
+          typeof parsed.lastLocation.lng === 'number'
+        ) {
+          lastLocation.value = {
+            lat: parsed.lastLocation.lat,
+            lng: parsed.lastLocation.lng,
           }
         }
-      } catch {
-        name.value = saved.trim()
-        region.value = null
-        boundary.value = null
+      }
+      if (Array.isArray(parsed.selectedAddresses)) {
+        selectedAddresses.value = parsed.selectedAddresses.filter(
+          (a): a is { sido: string; gugun: string; dong?: string } =>
+            typeof a?.sido === 'string' && typeof a?.gugun === 'string'
+        )
+      } else if (
+        parsed.selectedAddress &&
+        typeof parsed.selectedAddress.sido === 'string' &&
+        typeof parsed.selectedAddress.gugun === 'string'
+      ) {
+        selectedAddresses.value = [
+          {
+            sido: parsed.selectedAddress.sido,
+            gugun: parsed.selectedAddress.gugun,
+            dong: parsed.selectedAddress.dong,
+          },
+        ]
       }
     } catch {
       // ignore
@@ -254,10 +244,16 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
   return {
     name,
     region,
-    boundary,
     loading,
     requestShowMyLocation,
+    requestFitMapToSelectedAddress,
     lastLocation,
+    showLocationSelectModal,
+    selectedAddresses,
+    selectedAddressSummary,
+    setSelectedAddresses,
+    toggleSelectedAddress,
+    isAddressSelected,
     fetchFromLocation,
     clear,
     restoreFromStorage,

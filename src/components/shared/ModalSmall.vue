@@ -27,20 +27,22 @@
             <slot />
           </div>
           <footer v-if="showFooter" class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-outline"
-              @click="handleCancel"
-            >
-              {{ cancelText }}
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              @click="handleConfirm"
-            >
-              {{ confirmText }}
-            </button>
+            <slot name="footer" :close="close" :confirm="handleConfirm" :cancel="handleCancel">
+              <button
+                type="button"
+                class="btn btn-outline"
+                @click="handleCancel"
+              >
+                {{ cancelText }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                @click="handleConfirm"
+              >
+                {{ confirmText }}
+              </button>
+            </slot>
           </footer>
         </div>
       </div>

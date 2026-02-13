@@ -5,6 +5,11 @@
       <router-view :key="route.fullPath" />
     </main>
     <LoginModal v-model="showLoginModal" :academy-id="null" />
+    <LocationSelectModal
+      :model-value="myNeighborhood.showLocationSelectModal"
+      @update:model-value="myNeighborhood.showLocationSelectModal = $event"
+      @apply="() => {}"
+    />
   </div>
 </template>
 
@@ -12,6 +17,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LoginModal from '@/components/modals/LoginModal.vue'
+import LocationSelectModal from '@/components/modals/LocationSelectModal.vue'
 import Header from '@/components/shared/Header.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'

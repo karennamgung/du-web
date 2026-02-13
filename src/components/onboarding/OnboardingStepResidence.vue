@@ -1,16 +1,6 @@
 <template>
   <div class="residence-form">
     <div class="input-group">
-      <label for="residence" class="text-caption-sm">거주지</label>
-      <button
-        type="button"
-        class="btn btn-gray w-full"
-        @click="handleLocationClick"
-      >
-        현재 위치로 설정
-      </button>
-      </div>
-      <div class="input-group">
       <label for="residence" class="text-caption-sm">또는 직접 입력</label>
       <input
         id="residence"
@@ -27,7 +17,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import { useMyNeighborhoodStore } from "@/stores/myNeighborhood";
 
 interface Props {
   onboardingData: {
@@ -42,7 +31,6 @@ const emit = defineEmits<{
   next: [];
 }>();
 
-const myNeighborhood = useMyNeighborhoodStore();
 const residence = ref(props.onboardingData.residence || "");
 
 const canProceed = computed(() => residence.value.trim().length > 0);
@@ -58,15 +46,6 @@ watch(
 
 function handleInput() {
   emit("update-data", { residence: residence.value.trim() || null });
-}
-
-async function handleLocationClick() {
-  myNeighborhood.requestShowMyLocation = true;
-  await myNeighborhood.fetchFromLocation();
-  if (myNeighborhood.name) {
-    residence.value = myNeighborhood.name;
-    emit("update-data", { residence: residence.value });
-  }
 }
 
 function requestNext() {
