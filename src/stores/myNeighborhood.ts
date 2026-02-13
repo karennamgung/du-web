@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-/** OpenStreetMap Nominatim (브라우저 CORS 허용, API 키 불필요) */
-const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse'
-const NOMINATIM_SEARCH_URL = 'https://nominatim.openstreetmap.org/search'
+/** OpenStreetMap Nominatim. 개발 시 Vite 프록시(/api/nominatim) 사용해 CORS 회피 */
+const NOMINATIM_BASE =
+  import.meta.env.DEV ? '/api/nominatim' : 'https://nominatim.openstreetmap.org'
+const NOMINATIM_REVERSE_URL = `${NOMINATIM_BASE}/reverse`
+const NOMINATIM_SEARCH_URL = `${NOMINATIM_BASE}/search`
 
 /** 내 동네 경계 (bbox). 학원은 주소가 아니라 이 범위 안에 있으면 표시 */
 export type NeighborhoodBoundary = { sw: { lat: number; lng: number }; ne: { lat: number; lng: number } }
