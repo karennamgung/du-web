@@ -27,45 +27,31 @@
           </button>
         </template>
 
-        <!-- 우리 동네 (위치 찾기 → 동 이름 표시) + 위치 선택 영역 요약 -->
+        <!-- 우리 동네 (통합: 내 위치 chip 이름 / 선택 요약) -->
         <template v-if="myNeighborhood.loading">
           <p class="type-size-sm color-dim">가져오는 중…</p>
         </template>
-        <template v-else-if="myNeighborhood.name">
-          <h4>{{ myNeighborhood.name }}</h4>
+        <template v-else-if="headerLocationSummary">
           <button
             type="button"
-            class="btn btn-ghost btn-small btn-icon btn-rounded"
-            aria-label="동네 해제"
-            @click="myNeighborhood.clear()"
+            class="name-btn"
+            aria-label="동네 찾기"
+            @click="myNeighborhood.showLocationSelectModal = true"
           >
-            <Icon class="icon-2xs color-dim" :path="mdiClose" />
-          </button>
-        </template>
-        <template v-else-if="myNeighborhood.selectedAddressSummary">
-          <h4>{{ myNeighborhood.selectedAddressSummary }}</h4>
-          <button
-            type="button"
-            class="btn btn-ghost btn-small btn-icon btn-rounded"
-            aria-label="위치 선택 해제"
-            @click="myNeighborhood.setSelectedAddresses([])"
-          >
-            <Icon class="icon-2xs color-dim" :path="mdiClose" />
+            <h4>{{ headerLocationSummary.name }}</h4>
+            <p v-if="headerLocationSummary.extra" class="type-weight-semibold type-size-sm color-dimmer">
+              {{ headerLocationSummary.extra }}
+            </p>
+            <Icon class="icon-xs color-dim" :path="mdiChevronDown" />
           </button>
         </template>
         <button
+          v-if="!headerLocationSummary"
           type="button"
           class="link"
           @click="myNeighborhood.showLocationSelectModal = true"
         >
-          위치 선택
-        </button>
-        <button
-          type="button"
-          class="link"
-          @click="handleLocationClick"
-        >
-          내 위치
+          동네 찾기
         </button>
       </div>
     </div>
@@ -116,7 +102,7 @@ import ProfileInfoModal from '@/components/modals/ProfileInfoModal.vue'
 import HeaderUserDropdown from '@/components/shared/HeaderUserDropdown.vue'
 import Avatar from './Avatar.vue'
 import { useProfileStore, getUserTypeLabel } from '@/stores/profile'
-import { mdiChevronLeft, mdiChevronDown, mdiClose } from '@mdi/js'
+import { mdiChevronLeft, mdiChevronDown } from '@mdi/js'
 
 const emit = defineEmits<{ 'open-login': [] }>()
 
@@ -132,15 +118,30 @@ const isAdminRoute = computed(() => /^\/admin/.test(route.path))
 
 const userTypeLabel = computed(() => getUserTypeLabel(profile.profile?.user_type))
 
+const addrKey = (a: { sido: string; gugun: string; dong?: string }) =>
+  `${a.sido}|${a.gugun}|${a.dong ?? ''}`
+
+/** 헤더에 표시할 동네 요약 (이름 + optional "(+ N)" 은 <p>로 표시) */
+const headerLocationSummary = computed(() => {
+  const list = myNeighborhood.selectedAddresses
+  const my = myNeighborhood.myLocationAddress
+  const others = my ? list.filter((a) => addrKey(a) !== addrKey(my)) : list
+
+  if (my) {
+    const name = my.dong ?? my.gugun
+    if (others.length === 0) return { name, extra: null }
+    return { name, extra: `+${others.length}` }
+  }
+  if (list.length === 0) return null
+  const first = list[0]
+  const firstName = first.dong ?? first.gugun
+  if (list.length === 1) return { name: firstName, extra: null }
+  return { name: firstName, extra: `+${list.length - 1}` }
+})
+
 function goBack() {
   router.back()
 }
-
-async function handleLocationClick() {
-  myNeighborhood.requestShowMyLocation = true
-  await myNeighborhood.fetchFromLocation()
-}
-
 </script>
 
 <style lang="scss" scoped>

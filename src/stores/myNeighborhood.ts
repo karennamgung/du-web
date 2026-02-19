@@ -19,14 +19,16 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
   const loading = ref(false)
   /** 지도에 내 위치 표시 요청 (위치 찾기 클릭 시 true → MapPageView에서 showMyLocation 호출 후 false) */
   const requestShowMyLocation = ref(false)
-  /** 위치 선택 모달에서 적용 후, 선택한 동네의 학원 밀집 영역으로 지도 이동 요청 */
+  /** 동네 찾기 모달에서 적용 후, 선택한 동네의 학원 밀집 영역으로 지도 이동 요청 */
   const requestFitMapToSelectedAddress = ref(false)
   /** 마지막으로 확인한 내 위치 (지도 마커·복원용) */
   const lastLocation = ref<{ lat: number; lng: number } | null>(null)
-  /** 위치 선택 모달 열림 여부 */
+  /** 동네 찾기 모달 열림 여부 */
   const showLocationSelectModal = ref(false)
   /** 선택된 주소 목록 (동/읍/면 단위 다중 선택). 학원 필터에 사용 */
   const selectedAddresses = ref<Array<{ sido: string; gugun: string; dong?: string }>>([])
+  /** 내 위치 버튼으로 설정한 주소 (모달에서 버튼 옆 칩 표시용) */
+  const myLocationAddress = ref<{ sido: string; gugun: string; dong?: string } | null>(null)
 
   /** 역지오코딩: 위경도 → 주소(동 + 시·구). Nominatim 사용, 한국어 주소 요청 */
   async function reverseGeocode(
@@ -95,15 +97,16 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
         // 위치 찾기 결과를 address.ts와 매핑 (동 이름은 그대로, address만 연결)
         const mapped = mapLocationFinderToAddress(result.name)
         if (mapped?.sido && mapped?.gugun) {
-          selectedAddresses.value = [
-            {
-              sido: mapped.sido,
-              gugun: mapped.gugun,
-              dong: mapped.dong || undefined,
-            },
-          ]
+          const addr = {
+            sido: mapped.sido,
+            gugun: mapped.gugun,
+            dong: mapped.dong || undefined,
+          }
+          selectedAddresses.value = [addr]
+          myLocationAddress.value = addr
         } else {
           selectedAddresses.value = []
+          myLocationAddress.value = null
         }
         try {
           localStorage.setItem(
@@ -113,6 +116,7 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
               region: result.region,
               lastLocation: lastLocation.value,
               selectedAddresses: selectedAddresses.value,
+              myLocationAddress: myLocationAddress.value,
             })
           )
         } catch {
@@ -122,12 +126,14 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
         name.value = null
         region.value = null
         selectedAddresses.value = []
+        myLocationAddress.value = null
       }
     } catch {
       name.value = null
       region.value = null
       lastLocation.value = null
       selectedAddresses.value = []
+      myLocationAddress.value = null
     } finally {
       loading.value = false
     }
@@ -138,6 +144,7 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     region.value = null
     lastLocation.value = null
     selectedAddresses.value = []
+    myLocationAddress.value = null
     try {
       localStorage.removeItem('myNeighborhood')
     } catch {
@@ -177,7 +184,32 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     )
   }
 
-  /** 위치 선택 요약 문구 (헤더 표시용). 없으면 null */
+  /** 내 동네 지정 해제 (myLocationAddress 제거 + selectedAddresses에서 해당 주소 제거) */
+  function clearMyLocationAddress(): void {
+    const my = myLocationAddress.value
+    if (!my) return
+    const key = (a: { sido: string; gugun: string; dong?: string }) =>
+      `${a.sido}|${a.gugun}|${a.dong ?? ''}`
+    const myKey = key(my)
+    const next = selectedAddresses.value.filter((a) => key(a) !== myKey)
+    setSelectedAddresses(next)
+    myLocationAddress.value = null
+    name.value = null
+    region.value = null
+    try {
+      const saved = localStorage.getItem('myNeighborhood')
+      const parsed = saved?.trim() ? (JSON.parse(saved) as Record<string, unknown>) : {}
+      parsed.myLocationAddress = null
+      parsed.name = null
+      parsed.region = null
+      parsed.selectedAddresses = selectedAddresses.value
+      localStorage.setItem('myNeighborhood', JSON.stringify(parsed))
+    } catch {
+      // ignore
+    }
+  }
+
+  /** 동네 찾기 요약 문구 (헤더 표시용). 없으면 null */
   const selectedAddressSummary = computed(() => {
     const list = selectedAddresses.value
     if (!list.length) return null
@@ -203,6 +235,16 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
         lastLocation?: { lat: number; lng: number } | null
         selectedAddress?: { sido: string; gugun: string; dong?: string } | null
         selectedAddresses?: Array<{ sido: string; gugun: string; dong?: string }>
+        myLocationAddress?: { sido: string; gugun: string; dong?: string } | null
+      }
+      if (parsed.myLocationAddress && typeof parsed.myLocationAddress.sido === 'string' && typeof parsed.myLocationAddress.gugun === 'string') {
+        myLocationAddress.value = {
+          sido: parsed.myLocationAddress.sido,
+          gugun: parsed.myLocationAddress.gugun,
+          dong: parsed.myLocationAddress.dong,
+        }
+      } else {
+        myLocationAddress.value = null
       }
       if (parsed.name?.trim()) {
         name.value = parsed.name.trim()
@@ -223,6 +265,10 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
           (a): a is { sido: string; gugun: string; dong?: string } =>
             typeof a?.sido === 'string' && typeof a?.gugun === 'string'
         )
+        // 저장된 myLocationAddress가 없고, name(GPS)이 있고 선택이 1개면 그 주소를 내 위치로 복원
+        if (!parsed.myLocationAddress && parsed.name?.trim() && selectedAddresses.value.length === 1) {
+          myLocationAddress.value = { ...selectedAddresses.value[0] }
+        }
       } else if (
         parsed.selectedAddress &&
         typeof parsed.selectedAddress.sido === 'string' &&
@@ -250,11 +296,13 @@ export const useMyNeighborhoodStore = defineStore('myNeighborhood', () => {
     lastLocation,
     showLocationSelectModal,
     selectedAddresses,
+    myLocationAddress,
     selectedAddressSummary,
     setSelectedAddresses,
     toggleSelectedAddress,
     isAddressSelected,
     fetchFromLocation,
+    clearMyLocationAddress,
     clear,
     restoreFromStorage,
   }

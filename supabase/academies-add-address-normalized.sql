@@ -1,4 +1,4 @@
--- academies 테이블에 주소 정규화 컬럼 추가 (위치 선택 필터용)
+-- academies 테이블에 주소 정규화 컬럼 추가 (동네 찾기 필터용)
 -- address, address_road는 표시용 그대로 두고, 필터만 이 컬럼 사용 (address.ts 포맷: 시/도, 구/군/시, 동/면)
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS address_sido text;
 ALTER TABLE public.academies ADD COLUMN IF NOT EXISTS address_gugun text;

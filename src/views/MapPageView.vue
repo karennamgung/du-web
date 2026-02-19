@@ -354,6 +354,13 @@ const filteredAcademies = computed(() => {
   })
 })
 
+/** 동네 찾기 fit용: 선택된 동네에 해당하는 학원만 (화면 bounds 제외, 모든 선택 동네가 지도에 들어가도록) */
+const academiesInSelectedAddresses = computed(() => {
+  const addrs = myNeighborhood.selectedAddresses
+  if (!addrs?.length) return academies.value
+  return academies.value.filter(academyMatchesAnySelectedAddress)
+})
+
 const sortedAcademyList = computed(() => {
   const list = [...filteredAcademies.value]
   const sortBy = academyListSortBy.value
@@ -558,10 +565,10 @@ async function initMap(academyList: Academy[]) {
   else if (myNeighborhood.lastLocation) {
     showMyLocationAt(myNeighborhood.lastLocation.lat, myNeighborhood.lastLocation.lng)
   }
-  // 위치 선택 적용 후 지도로 온 경우: 선택한 동네 학원 밀집 영역으로 이동
+  // 동네 찾기 적용 후 지도로 온 경우: 선택한 동네가 모두 보이도록 fit (bounds 필터 없이)
   if (myNeighborhood.requestFitMapToSelectedAddress) {
     nextTick(() => {
-      fitMapToAcademyList(academyList)
+      fitMapToAcademyList(academiesInSelectedAddresses.value)
       myNeighborhood.requestFitMapToSelectedAddress = false
     })
   }
@@ -688,7 +695,7 @@ function fitMapToMyLocationAndCluster(lat: number, lng: number) {
   }
 }
 
-/** 선택한 동네의 학원 목록이 보이도록 지도 뷰 이동 (위치 선택 적용 시) */
+/** 선택한 동네의 학원 목록이 모두 보이도록 지도 뷰 이동 (동네 찾기 적용 시, 선택 동네 전부가 반경 안에 들어가도록 여백 적용) */
 function fitMapToAcademyList(academyList: Academy[]) {
   const maps = getMaps()
   if (!maps || !map) return
@@ -699,8 +706,8 @@ function fitMapToAcademyList(academyList: Academy[]) {
     setCenter?: (c: unknown) => void
     setZoom?: (z: number) => void
   }
-  const FIT_MARGIN = 48
-  const FIT_MAX_ZOOM = 16
+  const FIT_MARGIN = 80
+  const FIT_MAX_ZOOM = 15
   if (withCoord.length === 1) {
     const c = new maps.LatLng(withCoord[0].lat, withCoord[0].lng)
     if (typeof m.setCenter === 'function') m.setCenter(c)
@@ -1266,11 +1273,11 @@ watch(() => myNeighborhood.requestShowMyLocation, (v) => {
   }
 })
 
-// 위치 선택 모달에서 적용 시: 선택한 동네의 학원 밀집 영역으로 지도 이동
+// 동네 찾기 모달에서 적용 시: 선택한 동네가 모두 지도에 들어가도록 fit
 watch(() => myNeighborhood.requestFitMapToSelectedAddress, (v) => {
   if (v && map) {
     nextTick(() => {
-      fitMapToAcademyList(filteredAcademies.value)
+      fitMapToAcademyList(academiesInSelectedAddresses.value)
       myNeighborhood.requestFitMapToSelectedAddress = false
     })
   }
