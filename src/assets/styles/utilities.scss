@@ -16,6 +16,8 @@
 @use 'components/tag';
 @use 'components/icon';
 @use 'components/input';
+@use 'transitions/sheet';
+@use 'transitions/modal';
 
 // =============================================================================
 // CSS Reset — User Agent 기본값을 초기화, 그 위에 우리 스타일만 적용
@@ -406,7 +408,10 @@ p {
 .text-left { text-align: left; }
 .whitespace-nowrap { white-space: nowrap; }
 .inline-block { display: inline-block; }
-.min-w-7 { min-width: 7.5rem; }
+.min-w-5 { min-width: 5rem; }
+.min-w-6 { min-width: 6rem; }
+.min-w-7 { min-width: 7rem; }
+.min-w-10 { min-width: 10rem; }
 .max-w-20 { max-width: 20rem; }
 .max-w-modal { max-width: 22.5rem; }
 .fixed { position: fixed; }

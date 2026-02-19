@@ -1,28 +1,28 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition :name="isMobile ? 'sheet' : 'modal'">
       <div
         v-if="modelValue"
         class="modal-overlay"
         @click.self="close"
       >
         <div
-          class="modal-content"
+          class="modal-content sheet-panel modal-panel"
           role="dialog"
           aria-modal="true"
+          :style="isMobile && modalDragOffset > 0 ? { transform: `translateY(${modalDragOffset}px)` } : {}"
           @click.stop
         >
-          <header class="modal-header">
-            <h2>{{ title }}</h2>
-            <button
-              type="button"
-              class="btn btn-icon-only btn-rounded"
-              aria-label="닫기"
-              @click="close"
-            >
-              <Icon :path="mdiClose" />
-            </button>
-          </header>
+            <ModalHeader
+              :title="title"
+              :is-mobile="isMobile"
+              :is-bottom-sheet-maximized="!isMobile"
+              :show-close-button="true"
+              @close="close"
+              @drag-start="onHeaderDragStart"
+              @drag-move="onHeaderDragMove"
+              @drag-end="onHeaderDragEnd"
+            />
           <div class="modal-body">
             <slot />
           </div>
@@ -30,14 +30,14 @@
             <slot name="footer" :close="close" :confirm="handleConfirm" :cancel="handleCancel">
               <button
                 type="button"
-                class="btn btn-outline"
+                class="btn btn-outline min-w-6"
                 @click="handleCancel"
               >
                 {{ cancelText }}
               </button>
               <button
                 type="button"
-                class="btn btn-primary"
+                class="btn btn-primary flex-1"
                 @click="handleConfirm"
               >
                 {{ confirmText }}
@@ -51,8 +51,73 @@
 </template>
 
 <script setup lang="ts">
-import Icon from '@/components/shared/Icon.vue'
-import { mdiClose } from '@mdi/js'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import ModalHeader from '@/components/shared/ModalHeader.vue'
+
+const isMobile = ref(false)
+const modalDragOffset = ref(0)
+let dragStartY = 0
+let isDraggingModal = false
+
+function updateIsMobile() {
+  isMobile.value = window.innerWidth < 768
+}
+
+function getClientY(e: MouseEvent | TouchEvent): number {
+  return 'touches' in e ? e.touches[0].clientY : e.clientY
+}
+
+function onHeaderDragStart(e: MouseEvent | TouchEvent) {
+  if (!isMobile.value) return
+  isDraggingModal = true
+  dragStartY = getClientY(e)
+  modalDragOffset.value = 0
+  window.addEventListener('touchmove', onHeaderDragMove, { passive: false })
+  window.addEventListener('touchend', onHeaderDragEnd)
+  window.addEventListener('mousemove', onHeaderDragMove)
+  window.addEventListener('mouseup', onHeaderDragEnd)
+}
+
+function onHeaderDragMove(e: MouseEvent | TouchEvent) {
+  if (!isDraggingModal || !isMobile.value) return
+  const clientY = 'touches' in e ? (e as TouchEvent).touches[0]?.clientY : (e as MouseEvent).clientY
+  if (clientY == null) return
+  const deltaY = clientY - dragStartY
+  if (deltaY > 0) modalDragOffset.value = deltaY
+  if ('touches' in e) e.preventDefault()
+}
+
+const TRANSITION_MS = 300
+
+function onHeaderDragEnd() {
+  if (!isDraggingModal) return
+  isDraggingModal = false
+  window.removeEventListener('touchmove', onHeaderDragMove)
+  window.removeEventListener('touchend', onHeaderDragEnd)
+  window.removeEventListener('mousemove', onHeaderDragMove)
+  window.removeEventListener('mouseup', onHeaderDragEnd)
+  const threshold = Math.min(120, window.innerHeight * 0.2)
+  if (modalDragOffset.value >= threshold) {
+    modalDragOffset.value = window.innerHeight
+    setTimeout(() => close(), TRANSITION_MS)
+  } else {
+    modalDragOffset.value = 0
+  }
+}
+
+onMounted(() => {
+  updateIsMobile()
+  window.addEventListener('resize', updateIsMobile)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateIsMobile)
+  if (isDraggingModal) {
+    window.removeEventListener('touchmove', onHeaderDragMove)
+    window.removeEventListener('touchend', onHeaderDragEnd)
+    window.removeEventListener('mousemove', onHeaderDragMove)
+    window.removeEventListener('mouseup', onHeaderDragEnd)
+  }
+})
 
 interface Props {
   modelValue: boolean
@@ -67,6 +132,13 @@ const props = withDefaults(defineProps<Props>(), {
   confirmText: '확인',
   cancelText: '취소',
 })
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) modalDragOffset.value = 0
+  }
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -119,27 +191,28 @@ function handleCancel() {
   overflow: hidden;
   box-shadow: v.$shadow-lg;
   transition: transform v.$transition-base;
+  padding: v.$space-lg;
 
   @media (max-width: 768px) {
     max-height: 85vh;
     border-radius: v.$radius-lg v.$radius-lg 0 0;
+    padding: 0 v.$space-lg v.$space-lg v.$space-lg;
     max-width: none;
   }
 }
 
-.modal-header {
+.modal-small-header-wrap {
   flex-shrink: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: v.$space-lg;
+}
+
+.modal-small-header-wrap :deep(.modal-header-content) {
+  padding: 0;
 }
 
 .modal-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: v.$space-sm v.$space-lg v.$space-lg v.$space-lg;
 }
 
 .modal-footer {
@@ -147,39 +220,6 @@ function handleCancel() {
   display: flex;
   gap: v.$space-sm;
   justify-content: flex-end;
-  padding: v.$space-lg;
-  border-top: 1px solid v.$color-border-dim;
-}
-
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity v.$transition-base;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-active .modal-content,
-.modal-leave-active .modal-content {
-  transition: transform v.$transition-base;
-}
-
-.modal-enter-from .modal-content,
-.modal-leave-to .modal-content {
-  transform: scale(0.95);
-}
-
-@media (max-width: 768px) {
-  .modal-enter-from .modal-content,
-  .modal-leave-to .modal-content {
-    transform: translateY(100%);
-  }
-
-  .modal-enter-to .modal-content,
-  .modal-leave-from .modal-content {
-    transform: translateY(0);
-  }
+  padding-top: v.$space-lg;
 }
 </style>

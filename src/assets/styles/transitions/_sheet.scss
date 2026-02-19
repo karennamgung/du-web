@@ -1,0 +1,33 @@
+// =============================================================================
+// 전역 시트 트랜지션 (바텀 시트·모달 공통)
+// 사용: <Transition name="sheet"> 내부 루트 아래에 .sheet-panel 클래스 부여
+// - 열 때: 아래에서 위로 슬라이드 업 + 오버레이 페이드 인
+// - 닫을 때: 위에서 아래로 슬라이드 다운 + 오버레이 페이드 아웃
+// =============================================================================
+
+@use '../abstracts/primitives/effects' as e;
+
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity e.$transition-base;
+}
+
+.sheet-enter-active .sheet-panel,
+.sheet-leave-active .sheet-panel {
+  transition: transform e.$transition-base;
+}
+
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+}
+
+.sheet-enter-from .sheet-panel,
+.sheet-leave-to .sheet-panel {
+  transform: translateY(100%);
+}
+
+.sheet-enter-to .sheet-panel,
+.sheet-leave-from .sheet-panel {
+  transform: translateY(0);
+}

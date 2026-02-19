@@ -1,73 +1,68 @@
 <template>
   <ModalSmall
     :model-value="modelValue"
-    title="위치 기준"
+    title="동네 찾기"
     :show-footer="true"
+    cancel-text="취소"
+    confirm-text="동네 찾기"
     @update:model-value="$emit('update:modelValue', $event)"
+    @cancel="onMap"
+    @confirm="onApply"
   >
     <div class="location-select-columns">
       <div class="location-column">
-        <ul class="location-list">
-          <li
+        <div class="location-list">
+          <button
             v-for="s in sidoList"
             :key="s"
-            class="location-item"
+            type="button"
+            class="btn btn-ghost"
             :class="{ selected: selectedSido === s }"
             @click="selectedSido = s; selectedGugun = null"
           >
             {{ s }}
-          </li>
-        </ul>
+          </button>
+        </div>
       </div>
       <div class="location-column">
-        <ul class="location-list">
-          <li
+        <div class="location-list">
+          <button
             v-for="g in gugunList"
             :key="g"
-            class="location-item"
+            type="button"
+            class="btn btn-ghost"
             :class="{ selected: selectedGugun === g }"
             @click="selectedGugun = g"
           >
             {{ g }}
-          </li>
-        </ul>
+          </button>
+        </div>
       </div>
       <div class="location-column">
-        <ul class="location-list location-list-dong">
-          <li
+        <div class="location-list">
+          <label
             v-for="d in dongList"
             :key="d"
-            class="location-item location-item-check"
+            class="input-checkbox-label btn btn-ghost"
             :class="{ selected: isDongChecked(d) }"
-            @click="toggleDong(d)"
           >
-            <span class="location-checkbox" :class="{ checked: isDongChecked(d) }" aria-hidden="true" />
+            <input
+              type="checkbox"
+              class="mt-xs"
+              :checked="isDongChecked(d)"
+              :aria-label="d"
+              @change="toggleDong(d)"
+            />
             <span class="location-label">{{ d }}</span>
-          </li>
-        </ul>
+          </label>
+        </div>
       </div>
     </div>
-    <template #footer>
-      <button
-        type="button"
-        class="btn btn-outline"
-        @click="onMap"
-      >
-        지도
-      </button>
-      <button
-        type="button"
-        class="btn btn-primary"
-        @click="onApply"
-      >
-        적용
-      </button>
-    </template>
   </ModalSmall>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, unref } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ModalSmall from '@/components/shared/ModalSmall.vue'
 import { SIDO_ORDER, getGugunBySido, getDongBySidoGugun } from '@/constants/address'
@@ -150,9 +145,8 @@ function onApply() {
 <style lang="scss" scoped>
 .location-select-columns {
   display: flex;
-  gap: 0;
-  min-height: 240px;
-  border: 1px solid v.$color-border-dim;
+  gap: v.$space-sm;
+  min-height: 15rem;
   border-radius: v.$radius-md;
   overflow: hidden;
 }
@@ -160,7 +154,6 @@ function onApply() {
 .location-column {
   flex: 1;
   min-width: 0;
-  border-right: 1px solid v.$color-border-dim;
   overflow-y: auto;
 
   &:last-child {
@@ -169,61 +162,33 @@ function onApply() {
 }
 
 .location-list {
-  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: v.$space-xs;
   margin: 0;
-  padding: v.$space-xs 0;
 }
 
-.location-item {
-  padding: v.$space-sm v.$space-md;
-  cursor: pointer;
-  font-size: 0.9375rem;
+.location-list > .btn,
+.location-list > .input-checkbox-label {
+  width: 100%;
+  justify-content: flex-start;
   color: v.$color-text-dim;
 
-  &:hover {
-    background: v.$color-bg-dim;
-  }
-
   &.selected {
-    background: v.$color-bg-dim;
-    color: v.$color-primary;
-    font-weight: 600;
+    background: v.$color-bg-dimmer;
+    color: v.$color-text-base;
   }
 }
 
-.location-item-check {
-  display: flex;
-  align-items: center;
-  gap: v.$space-sm;
-}
-
-.location-checkbox {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.125rem;
-  height: 1.125rem;
-  border: 2px solid v.$color-border-dim;
-  border-radius: 3px;
-  background: v.$color-bg-base;
-  font-size: 0.75rem;
-  color: #fff;
-
-  .location-item.selected &,
-  &.checked {
-    background: v.$color-primary;
-    border-color: v.$color-primary;
-  }
-
-  .location-item.selected &::after,
-  &.checked::after {
-    content: '✓';
-  }
+.location-list > .input-checkbox-label {
+  white-space: normal; /* .btn의 white-space: nowrap 덮어씀 */
+  align-items: flex-start; /* 줄이 여러 개일 때 체크박스 위쪽 정렬 */
 }
 
 .location-label {
   flex: 1;
   min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 </style>

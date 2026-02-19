@@ -7,64 +7,21 @@
     }"
     :style="isMobile ? { height: `${bottomSheetHeight}px` } : {}"
   >
-    <!-- 모바일: 드래그 가능한 상단 바 (핸들) -->
-    <div 
-      v-if="isMobile && !isBottomSheetMaximized"
-      class="map-bottom-sheet-drag-area"
-      @touchstart="$emit('dragStart', $event)"
-      @touchmove.prevent="$emit('dragMove', $event)"
-      @touchend="$emit('dragEnd')"
-      @mousedown="$emit('dragStart', $event)"
-    >
-      <div class="map-bottom-sheet-handle">
-        <div class="map-bottom-sheet-handle-bar"></div>
-      </div>
-    </div>
-    <!-- 학원 목록 타이틀·정렬 영역 -->
-    <div 
-      class="map-academy-list-header"
-      :class="{ 'map-academy-list-header-clickable': isMobile && !singleCardAcademy }"
-      @click="!singleCardAcademy && $emit('headerClick')"
-    >
-      <div class="map-academy-list-title-row">
-        <button
-          v-if="singleCardAcademy"
-          type="button"
-          class="btn btn-icon-only btn-rounded map-academy-list-back"
-          aria-label="목록으로"
-          @click.stop="$emit('closeSingleCard')"
-        >
-          <Icon :path="mdiChevronLeft" />
-        </button>
-        <h3 class="map-academy-list-title">{{ singleCardAcademy ? `학원 목록 보기 (${academies.length}개)` : `학원 목록 (${academies.length}곳)` }}</h3>
-        <button
-          v-if="!singleCardAcademy && hasVisibleBoundsFilter"
-          type="button"
-          class="btn btn-outline"
-          @click.stop="$emit('clearVisibleBoundsFilter')"
-        >
-          전체 보기
-        </button>
-      </div>
-      <div v-if="!singleCardAcademy" class="map-academy-list-sort" @click.stop>
-        <button
-          type="button"
-          class="chip"
-          :class="{ 'chip-active': sortBy === 'comments' }"
-          @click="$emit('update:sortBy', 'comments')"
-        >
-          리뷰순
-        </button>
-        <button
-          type="button"
-          class="chip"
-          :class="{ 'chip-active': sortBy === 'name' }"
-          @click="$emit('update:sortBy', 'name')"
-        >
-          이름순
-        </button>
-      </div>
-    </div>
+    <ModalHeader
+      :title="modalHeaderTitle"
+      :is-mobile="isMobile"
+      :is-bottom-sheet-maximized="isBottomSheetMaximized"
+      :show-back-button="!!singleCardAcademy"
+      :show-sort="!singleCardAcademy"
+      :sort-by="sortBy"
+      :header-clickable="isMobile && !singleCardAcademy"
+      @drag-start="$emit('dragStart', $event)"
+      @drag-move="$emit('dragMove', $event)"
+      @drag-end="$emit('dragEnd')"
+      @header-click="$emit('headerClick')"
+      @update:sort-by="$emit('update:sortBy', $event)"
+      @close-single-card="$emit('closeSingleCard')"
+    />
     <div ref="academyCardsRef" class="map-academy-cards">
       <!-- 모바일: 지도에서 선택 시 해당 학원 카드만 표시 (X 버튼으로 목록으로 복귀) -->
       <template v-if="singleCardAcademy">
@@ -106,12 +63,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { computed } from 'vue'
-import Icon from '@/components/shared/Icon.vue'
+import { ref, computed } from 'vue'
+import ModalHeader from '@/components/shared/ModalHeader.vue'
 import MapAcademyCard from './MapAcademyCard.vue'
 import type { Academy } from '@/types/academy'
-import { mdiChevronLeft } from '@mdi/js'
 
 /** 두 좌표 사이의 거리를 km 단위로 계산 (Haversine 공식) */
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -160,7 +115,6 @@ const props = defineProps<{
   MIN_HEIGHT: number
   selectedAcademyId: string | null
   searchSelectedAcademyId: string | null
-  hasVisibleBoundsFilter: boolean
   sortBy: 'comments' | 'name'
   isFavorited: (id: string) => boolean
   favoriteLoading: boolean
@@ -176,7 +130,6 @@ defineEmits<{
   dragMove: [e: MouseEvent | TouchEvent]
   dragEnd: []
   headerClick: []
-  'clearVisibleBoundsFilter': []
   'update:sortBy': [value: 'comments' | 'name']
   academyClick: [academy: Academy]
   favoriteClick: [academyId: string]
@@ -184,6 +137,12 @@ defineEmits<{
   academyMouseleave: []
   closeSingleCard: []
 }>()
+
+const modalHeaderTitle = computed(() =>
+  props.singleCardAcademy
+    ? `학원 목록 보기 (${props.academies.length}개)`
+    : `학원 목록 (${props.academies.length}곳)`
+)
 
 const bottomSheetRef = ref<HTMLElement | null>(null)
 const academyCardsRef = ref<HTMLElement | null>(null)
@@ -206,7 +165,7 @@ defineExpose({
   padding: 0 v.$space-lg;
 
   @media (min-width: 768px) {
-    padding-left: 2rem;
+    padding: v.$space-lg v.$space-3xl 0 v.$space-3xl;
   }
 
   // 모바일: 지도 위에 오버레이되는 바텀 시트 (떠 있는 느낌을 위한 그림자). translateZ(0)으로 레이어 분리해 로딩 직후에도 페인트되게 함
@@ -224,14 +183,14 @@ defineExpose({
     overflow: hidden;
 
     &.map-academy-list-minimized {
-      .map-academy-list-header,
+      :deep(.modal-header-content),
       .map-academy-cards {
         opacity: 0;
         pointer-events: none;
         transition: opacity v.$transition-base;
       }
-      
-      .map-bottom-sheet-handle {
+
+      :deep(.modal-header-handle) {
         opacity: 1;
       }
     }
@@ -248,88 +207,18 @@ defineExpose({
   }
 }
 
-// 모바일: 상단 드래그 영역 (항상 맨 위에 노출, sticky). translateZ(0)으로 레이어 분리해 로딩 직후에도 페인트되게 함
-.map-bottom-sheet-drag-area {
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: v.$z-canvas;
-  background: v.$color-bg-base;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  transform: translateZ(0);
-
-  &:active {
-    cursor: grabbing;
-  }
-}
-
-// 바텀 시트 드래그 핸들 (내려서 지도 보기용, 항상 노출)
-.map-bottom-sheet-handle {
-  flex-shrink: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: v.$space-md 0;
-}
-
-.map-bottom-sheet-handle-bar {
-  width: 2.5rem;
-  height: 0.25rem;
-  background: v.$color-border-strong;
-  border-radius: v.$radius-full;
-}
-
-.map-academy-list-header {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: v.$space-sm;
-  padding: v.$space-lg 0 v.$space-sm 0;
-
-  &.map-academy-list-header-clickable {
-    cursor: pointer;
-    user-select: none;
-  }
-}
-
-.map-academy-list-title-row {
-  display: flex;
-  align-items: center;
-  gap: v.$space-sm;
-  flex-wrap: wrap;
-}
-
-.map-academy-list-title {
-  margin: 0;
-}
-
-.map-academy-list-back {
-  flex-shrink: 0;
-}
-
-.map-academy-list-sort {
-  display: flex;
-  align-items: center;
-  gap: v.$space-xs;
-}
-
 .map-academy-cards {
   flex: 1;
   min-height: 0;
   min-width: 0;
   margin: 0;
-  padding-top: v.$space-sm;
+
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
   gap: v.$space-xl;
-  overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
+  padding-bottom: v.$space-lg;
 
   /* 태블릿: 2열 그리드 */
   @media (min-width: 768px) and (max-width: 1023px) {
@@ -337,6 +226,7 @@ defineExpose({
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: min-content;
     gap: v.$space-lg;
+    padding-bottom: v.$space-3xl;
     align-content: start;
     align-items: start;
   }
@@ -347,6 +237,7 @@ defineExpose({
     grid-template-columns: repeat(3, 1fr);
     grid-auto-rows: min-content;
     gap: v.$space-lg;
+    padding-bottom: v.$space-3xl;
     align-content: start;
     align-items: start;
   }

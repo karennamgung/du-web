@@ -1,0 +1,37 @@
+// =============================================================================
+// 전역 모달 트랜지션 (데스크톱·태블릿용)
+// 사용: <Transition name="modal"> 내부 루트 아래에 .modal-panel 클래스 부여
+// - 열 때: 페이드 인 + 패널이 살짝 아래에서 위로 슬라이드
+// - 닫을 때: 페이드 아웃 + 패널이 살짝 위에서 아래로 슬라이드
+// - 이징: ease-out-expo 느낌으로 마무리
+// =============================================================================
+
+@use '../abstracts/primitives/effects' as e;
+
+$modal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+$modal-duration: 0.35s;
+
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity $modal-duration $modal-ease;
+}
+
+.modal-enter-active .modal-panel,
+.modal-leave-active .modal-panel {
+  transition: transform $modal-duration $modal-ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-panel,
+.modal-leave-to .modal-panel {
+  transform: translateY(12px);
+}
+
+.modal-enter-to .modal-panel,
+.modal-leave-from .modal-panel {
+  transform: translateY(0);
+}
