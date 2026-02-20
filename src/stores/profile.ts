@@ -74,6 +74,8 @@ export const useProfileStore = defineStore('profile', () => {
   const loading = ref(false)
   // 선택된 아이 인덱스 (null이면 학부모 이름 선택, 숫자면 해당 인덱스의 아이 선택)
   const selectedChildIndex = ref<number | null>(null)
+  /** 프로필 선택 모달 열림 여부 (헤더·지도 검색 바 연령 등에서 사용) */
+  const showProfileModal = ref(false)
 
   const isOnboardingCompleted = computed(() => profile.value?.onboarding_completed ?? false)
   
@@ -255,6 +257,7 @@ export const useProfileStore = defineStore('profile', () => {
     isOnboardingCompleted,
     currentChild,
     selectedChildIndex,
+    showProfileModal,
     displayName,
     loadProfile,
     refresh,

@@ -20,7 +20,7 @@
           <button
             type="button"
             class="name-btn"
-            @click="showProfileModal = true"
+            @click="profile.showProfileModal = true"
           >
             <h4>{{ profile.displayName }}</h4>
             <Icon class="icon-xs color-dim" :path="mdiChevronDown" />
@@ -55,6 +55,7 @@
         </button>
       </div>
     </div>
+    
     <div class="flex items-center gap-md">
       <template v-if="auth.isAuthenticated">
         <div class="header-user-wrap">
@@ -89,7 +90,10 @@
     </div>
   </header>
 
-  <ProfileInfoModal v-model="showProfileModal" />
+  <ProfileInfoModal
+    :model-value="profile.showProfileModal"
+    @update:model-value="profile.showProfileModal = $event"
+  />
 </template>
 
 <script setup lang="ts">
@@ -111,7 +115,6 @@ const router = useRouter()
 const auth = useAuthStore()
 const myNeighborhood = useMyNeighborhoodStore()
 const profile = useProfileStore()
-const showProfileModal = ref(false)
 const showUserMenu = ref(false)
 
 const isAdminRoute = computed(() => /^\/admin/.test(route.path))
