@@ -4,8 +4,7 @@ import {
   mdiTranslate, // 영어
   mdiCalculator, // 수학
   mdiFlask, // 과학
-  mdiBookOpen, // 국어
-  mdiPencil, // 논술
+  mdiBookOpen, // 국어 (논술 통합)
   mdiCodeTags, // 코딩·로봇
   mdiMusic, // 음악
   mdiPalette, // 미술·디자인
@@ -13,13 +12,12 @@ import {
   mdiDanceBallroom, // 무용
 } from '@mdi/js'
 
-/** 과목별 MDI 아이콘 매핑 (통합 10개만, 지도 마커·필터 칩 공통) */
+/** 과목별 MDI 아이콘 매핑 (통합 9개, 논술→국어 통합, 지도 마커·필터 칩 공통) */
 export const SUBJECT_ICON_MAP: Record<string, string> = {
   '영어': mdiTranslate,
   '수학': mdiCalculator,
   '과학': mdiFlask,
   '국어': mdiBookOpen,
-  '논술': mdiPencil,
   '코딩': mdiCodeTags,
   '음악': mdiMusic,
   '미술': mdiPalette,
@@ -30,6 +28,36 @@ export const SUBJECT_ICON_MAP: Record<string, string> = {
 /** 기본 아이콘 (과목이 없거나 매핑되지 않은 경우) */
 export const DEFAULT_SUBJECT_ICON = mdiCircle
 
+/**
+ * 과목별 이미지 파일명 (public/subjects/ 폴더 기준)
+ * 해당 파일들을 public/subjects/ 안에 두고 사용한다.
+ */
+export const SUBJECT_IMAGE_MAP: Partial<Record<Subject, string>> = {
+  '영어': 'english-221283e6-51cd-4036-9b4e-6046441481e7.png',
+  '수학': 'math-04d2b2af-e157-40ef-8175-c009e9868ee5.png',
+  '과학': 'science-3902bdbe-28ad-437d-862b-44de6a980cd0.png',
+  '국어': 'korean-25e73270-3027-44f7-934a-71be7d2e2988.png',
+  '코딩': 'coding-73d71a97-0f4f-4d46-9d16-7877022355d1.png',
+  '음악': 'music-c9772d27-44da-4724-be3c-2ee8424b80ff.png',
+  '미술': 'art-67e08bd1-cd6f-4afc-8621-2ce7581e6fea.png',
+  '스포츠': 'sport-78017f4d-be88-478d-ab95-e16cc5a32371.png',
+  '무용': 'dance-be98430a-39a9-4a45-9e73-de9a0d2d98f6.png',
+}
+
+/** 과목 이미지 베이스 경로 (public/subjects) */
+export const SUBJECT_IMAGES_BASE = '/subjects'
+
+/**
+ * 과목에 해당하는 이미지 URL 반환 (탭·칩 등에서 사용)
+ * @param subject - 표준 과목명
+ * @returns 이미지가 있으면 /subjects/파일명, 없으면 null
+ */
+export function getSubjectImage(subject: string | null | undefined): string | null {
+  if (!subject) return null
+  const filename = SUBJECT_IMAGE_MAP[subject as Subject]
+  return filename ? `${SUBJECT_IMAGES_BASE}/${filename}` : null
+}
+
 /** 지도 내 위치 마커 아이콘 (학원 마커와 구분) */
 export const MY_LOCATION_MARKER_ICON = mdiHome
 
@@ -39,13 +67,12 @@ export const AGE_GROUP_ORDER = ['고등', '중등', '초등', '유치'] as const
 /** 표준 연령 그룹 리스트 (AGE_GROUP_ORDER와 동일) */
 export const AGE_GROUP_LIST = AGE_GROUP_ORDER
 
-/** 표준 과목 리스트 (통합된 10개, 필터·정렬용) */
+/** 표준 과목 리스트 (통합 9개, 논술→국어 통합, 필터·정렬용) */
 export const SUBJECT_LIST = [
   '영어',
   '수학',
   '과학',
   '국어',
-  '논술',
   '코딩',
   '음악',
   '미술',
@@ -98,7 +125,7 @@ const CANONICAL_SUBJECT_MAP: Record<string, Subject> = {
   수학: '수학',
   과학: '과학',
   국어: '국어',
-  논술: '논술',
+  논술: '국어',
   코딩: '코딩',
   로봇: '코딩',
   음악: '음악',
@@ -133,16 +160,27 @@ export function isValidSubject(subject: string): subject is Subject {
 
 /**
  * 학원 과목 배열 → 카드·상세 페이지에 표시할 태그
- * 
- * 1. 데이터베이스에서 들어오는 태그는 학원 카드와 학원 상세정보 페이지에 모두 표시 (원본 그대로)
- * 2. 데이터베이스에서 들어오는 태그를 그룹핑하여 표준 태그로 매치하여 "필터" 및 "지도"에 사용
- * 
+ *
+ * 표준명으로 통일·중복 제거 (논술·국어 → 국어 한 개로 표시)
+ *
  * @param subjects - DB에서 가져온 원본 과목 배열
- * @returns 유효한 과목만 필터링하여 반환 (원본 그대로, 변환 없음)
+ * @returns 표준 과목명 배열 (SUBJECT_LIST 순서, 중복 제거)
  */
 export function getDisplaySubjects(subjects: string[] | null | undefined): string[] {
   if (!subjects || subjects.length === 0) return []
-  return subjects.filter(isValidSubject)
+  const canonicalSet = new Set<Subject>()
+  for (const s of subjects) {
+    const canonical = getCanonicalSubject(s)
+    if (canonical) canonicalSet.add(canonical)
+  }
+  return Array.from(canonicalSet).sort((a, b) => {
+    const i = SUBJECT_LIST.indexOf(a)
+    const j = SUBJECT_LIST.indexOf(b)
+    if (i !== -1 && j !== -1) return i - j
+    if (i !== -1) return -1
+    if (j !== -1) return 1
+    return a.localeCompare(b)
+  })
 }
 
 /**

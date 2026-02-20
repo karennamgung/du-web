@@ -27,17 +27,14 @@
     <div v-if="subjectOptions.length" class="map-category-row">
       <p class="map-category-label type-size-sm type-weight-semibold color-dim">과목</p>
       <div class="map-category-chips">
-        <button
+        <Tab
           v-for="opt in subjectOptions"
           :key="'sub-' + opt"
-          type="button"
-          class="chip chip-with-icon"
-          :class="{ 'chip-active': selectedSubjects.includes(opt) }"
+          :label="opt"
+          :image="getSubjectImage(opt)"
+          :active="selectedSubjects.includes(opt)"
           @click="$emit('toggleSubject', opt)"
-        >
-          <Icon class="map-category-chip-icon" :path="getSubjectIcon(opt)" color="currentColor" />
-          <span>{{ opt }}</span>
-        </button>
+        />
       </div>
     </div>
   </div>
@@ -47,8 +44,8 @@
 import { computed } from 'vue'
 import type { Academy } from '@/types/academy'
 import MapSearch from '@/components/mappage/MapSearch.vue'
-import Icon from '@/components/shared/Icon.vue'
-import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, getSubjectIcon, type Subject } from '@/constants/subjectTypes'
+import Tab from '@/components/shared/Tab.vue'
+import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, getSubjectImage, type Subject } from '@/constants/subjectTypes'
 
 const props = defineProps<{
   academies: Academy[]
@@ -141,19 +138,6 @@ const subjectOptions = computed(() => {
 
   .chip {
     flex-shrink: 0;
-  }
-
-  .chip-with-icon {
-    display: inline-flex;
-    align-items: center;
-    gap: v.$space-2xs;
-  }
-
-  .map-category-chip-icon {
-    flex-shrink: 0;
-    width: 1rem;
-    height: 1rem;
-    opacity: 0.9;
   }
 }
 </style>
