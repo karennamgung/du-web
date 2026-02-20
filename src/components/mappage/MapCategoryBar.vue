@@ -27,7 +27,7 @@
     <div v-if="subjectOptions.length" class="map-category-row">
       <p class="map-category-label type-size-sm type-weight-semibold color-dim">과목</p>
       <div class="map-category-chips">
-        <Tab
+        <ButtonSubject
           v-for="opt in subjectOptions"
           :key="'sub-' + opt"
           :label="opt"
@@ -44,7 +44,7 @@
 import { computed } from 'vue'
 import type { Academy } from '@/types/academy'
 import MapSearch from '@/components/mappage/MapSearch.vue'
-import Tab from '@/components/shared/Tab.vue'
+import ButtonSubject from '@/components/shared/ButtonSubject.vue'
 import { AGE_GROUP_ORDER, SUBJECT_LIST, isValidAgeGroup, getCanonicalSubjects, getSubjectImage, type Subject } from '@/constants/subjectTypes'
 
 const props = defineProps<{

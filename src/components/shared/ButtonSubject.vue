@@ -67,10 +67,12 @@ defineEmits<{
     transform: scale(0.8);
     opacity: 0.5;
     transition: transform v.$transition-fast, opacity v.$transition-fast;
-  } 
+  }
 
-  &:hover .tab-media{
-    opacity: 1;
+  @media (hover: hover) {
+    &:hover .tab-media {
+      opacity: 1;
+    }
   }
 
   &.tab-active .tab-media {
