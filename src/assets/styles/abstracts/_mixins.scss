@@ -14,6 +14,12 @@
   border-radius: s.$radius-sm;
 }
 
+@mixin button-modifier-large {
+  padding: s.$space-lg;
+  font-size: t.$font-size-md;
+  border-radius: s.$radius-lg;
+}
+
 @mixin button-modifier-rounded {
   border-radius: s.$radius-full;
 }
@@ -90,6 +96,7 @@
 @mixin button-base {
   box-sizing: border-box;
   display: inline-flex;
+  height: fit-content;
   align-items: center;
   justify-content: center;
   gap: s.$space-xs;

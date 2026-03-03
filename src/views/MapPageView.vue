@@ -1,26 +1,11 @@
 <template>
   <div class="map-page">
     <p v-if="loading" class="map-loading">학원 목록 불러오는 중...</p>
-    <header v-else ref="categoryBarRef" class="map-page-header">
-      <div class="map-page-filter-section">
-        <MapCategoryBar
-          :academies="academies"
-          :loading="loading"
-          :selected-age-groups="selectedAgeGroups"
-          :selected-subjects="selectedSubjects"
-          @toggle-age-group="toggleAgeGroup"
-          @toggle-subject="toggleSubject"
-          @select="handleSearchSelect"
-          @clear-search="searchSelectedAcademyId = null"
-        />
-      </div>
-    </header>
-
-    <div v-if="!loading" class="map-content">
+    <div v-else class="map-content">
       <div class="map-content-inner">
         <MapAcademyList
           ref="academyListComponentRef"
-          :academies="sortedAcademyList"
+          :academies="academyListForDisplay"
           :is-mobile="isMobile"
           :bottom-sheet-height="bottomSheetHeight"
           :is-bottom-sheet-maximized="isBottomSheetMaximized"
@@ -74,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import LoginModal from '@/components/modals/LoginModal.vue'
 import Icon from '@/components/shared/Icon.vue'
@@ -87,8 +72,9 @@ import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
 import { supabase } from '@/lib/supabase'
 import type { Academy } from '@/types/academy'
 import { mdiMapMarker, mdiMapOutline, mdiCircle, mdiSquare } from '@mdi/js'
-import { getSubjectIconPath, MY_LOCATION_MARKER_ICON, AGE_GROUP_ORDER, getCanonicalSubject, isValidAgeGroup, isValidSubject, getAgeGroupsFromAges } from '@/constants/subjectTypes'
+import { getSubjectIconPath, MY_LOCATION_MARKER_ICON, getCanonicalSubject, isValidAgeGroup, isValidSubject, getAgeGroupsFromAges } from '@/constants/subjectTypes'
 import { useProfileStore } from '@/stores/profile'
+import { useSubHeaderStore } from '@/stores/subHeader'
 
 const SONGDO_CENTER = { lat: 37.3833, lng: 126.6567 }
 /** MDI 원 아이콘 마커: 원 중심이 좌표에 오도록 앵커 설정 */
@@ -108,7 +94,6 @@ const academyListComponentRef = ref<InstanceType<typeof MapAcademyList> | null>(
 const selectedAcademy = ref<Academy | null>(null)
 const academies = ref<Academy[]>([])
 const loading = ref(true)
-const selectedAgeGroups = ref<string[]>([])
 
 /** 프로필/선택된 사용자(학부모·자녀)의 나이 → 대상나이 필터에 반영할 연령 그룹 */
 const profileAgeGroups = computed(() => {
@@ -139,12 +124,31 @@ const dragStartHeight = ref(0)
 // 바텀 시트 최소 높이: 드래그 영역(map-bottom-sheet-drag-area)만 보이도록 (handle padding 12px×2 + bar 4px ≈ 28px)
 const MIN_HEIGHT = 28
 
-const categoryBarRef = ref<HTMLElement | null>(null)
+const subHeaderStore = useSubHeaderStore()
+
+/** 서브 헤더(필터 바)에 전달할 props — MapPageView 상태와 동기화 */
+const subHeaderProps = reactive({
+  academies: [] as Academy[],
+  loading: false,
+  selectedAgeGroups: [] as string[],
+  selectedSubjects: [] as string[],
+})
+
+watch(
+  () => [academies.value, loading.value, profileStore.selectedAgeGroupsForMap, selectedSubjects.value] as const,
+  ([a, l, ag, s]) => {
+    subHeaderProps.academies = a
+    subHeaderProps.loading = l
+    subHeaderProps.selectedAgeGroups = Array.isArray(ag) ? [...ag] : []
+    subHeaderProps.selectedSubjects = s
+  },
+  { immediate: true }
+)
 
 /** 모바일: 확장 시 최대 높이(px). 필터(대상연령/과목) 실제 하단 기준으로 꽉 차게 */
 function getMaxSheetHeightPx(): number {
   if (typeof window === 'undefined') return 500
-  const el = categoryBarRef.value
+  const el = subHeaderStore.wrapperRef
   const filterBottom = el ? el.getBoundingClientRect().bottom : 180 // 폴백: 앱 헤더+필터 대략
   const maxHeight = window.innerHeight - filterBottom
   return Math.max(MIN_HEIGHT, maxHeight)
@@ -267,6 +271,12 @@ function handleSearchSelect(academy: Academy) {
   setTimeout(() => { skipClearSelectionFromFilter.value = false }, 0)
 }
 
+function clearSearchSelection() {
+  searchSelectedAcademyId.value = null
+  selectedAcademy.value = null
+  hoveredAcademy.value = null
+}
+
 function handleAcademyMouseenter(academy: Academy) {
   hoveredAcademy.value = academy
 }
@@ -275,17 +285,11 @@ function handleAcademyMouseleave() {
   hoveredAcademy.value = null
 }
 
-function toggleAgeGroup(opt: string) {
-  const i = selectedAgeGroups.value.indexOf(opt)
-  if (i === -1) selectedAgeGroups.value = [...selectedAgeGroups.value, opt]
-  else selectedAgeGroups.value = selectedAgeGroups.value.filter((x) => x !== opt)
-}
-
 // 프로필/선택된 사용자(학부모·자녀)가 바뀌면 대상나이 필터를 해당 연령 그룹으로 자동 지정
 watch(
   profileAgeGroups,
   (groups) => {
-    selectedAgeGroups.value = [...groups]
+    profileStore.selectedAgeGroupsForMap = [...groups]
   },
   { immediate: true }
 )
@@ -330,7 +334,7 @@ function academyMatchesAnySelectedAddress(a: Academy): boolean {
 }
 
 const filteredAcademies = computed(() => {
-  const ageFilter = selectedAgeGroups.value
+  const ageFilter = profileStore.selectedAgeGroupsForMap
   const subFilter = selectedSubjects.value
   const bounds = visibleBoundsFilter.value
   const addrs = myNeighborhood.selectedAddresses
@@ -370,6 +374,14 @@ const sortedAcademyList = computed(() => {
     list.sort((a, b) => a.name.localeCompare(b.name, 'ko'))
   }
   return list
+})
+
+/** 검색 자동완성에서 학원 선택 시 해당 학원만 목록에 표시, 그 외에는 정렬된 전체 목록 */
+const academyListForDisplay = computed(() => {
+  const searchId = searchSelectedAcademyId.value
+  const selected = selectedAcademy.value
+  if (searchId && selected?.id === searchId) return [selected]
+  return sortedAcademyList.value
 })
 
 // 모바일: 바텀 시트가 최대 높이(전체 확장)인지 여부
@@ -1196,6 +1208,11 @@ async function fetchCommentCounts() {
 }
 
 watch(filteredAcademies, (list) => {
+  // 검색 자동완성으로 선택한 학원만 보이는 상태면, 선택 해제하지 않고 해당 학원 마커만 표시
+  if (searchSelectedAcademyId.value && selectedAcademy.value?.id === searchSelectedAcademyId.value) {
+    if (map) updateMarkers([selectedAcademy.value])
+    return
+  }
   // 검색 드롭다운에서 방금 선택한 경우 선택 해제하지 않음 (하이라이트 유지)
   if (skipClearSelectionFromFilter.value) {
     const withSelected =
@@ -1306,6 +1323,8 @@ watch(bottomSheetHeight, () => {
 })
 
 function onDocumentClick(e: MouseEvent) {
+  // 검색 자동완성으로 학원만 보는 상태면, 바깥 클릭해도 선택 유지 (검색 해제나 다른 학원 클릭으로만 해제)
+  if (searchSelectedAcademyId.value) return
   // 지도 밖 클릭 시 마커 하이라이트·학원 카드 선택 해제 (지도·학원 목록·검색 클릭은 제외)
   const target = e.target as Node
   const el = e.target as Element
@@ -1320,7 +1339,33 @@ function onDocumentClick(e: MouseEvent) {
 
 let categoryBarResizeObserver: ResizeObserver | null = null
 
+watch(
+  () => subHeaderStore.wrapperRef,
+  (el) => {
+    categoryBarResizeObserver?.disconnect()
+    categoryBarResizeObserver = null
+    if (!el || typeof ResizeObserver === 'undefined') return
+    categoryBarResizeObserver = new ResizeObserver(() => {
+      if (!isMobile.value) return
+      const maxPx = getMaxSheetHeightPx()
+      if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
+    })
+    categoryBarResizeObserver.observe(el)
+  },
+  { immediate: true }
+)
+
 onMounted(async () => {
+  subHeaderStore.set({
+    component: MapCategoryBar,
+    props: subHeaderProps,
+    listeners: {
+      'toggle-subject': (opt: unknown) => toggleSubject(opt as string),
+      select: (academy: unknown) => handleSearchSelect(academy as Academy),
+      'clear-search': clearSearchSelection,
+    },
+  })
+
   document.addEventListener('click', onDocumentClick)
   checkMobile()
   window.addEventListener('resize', checkMobile)
@@ -1328,7 +1373,7 @@ onMounted(async () => {
   window.addEventListener('mouseup', onDragEnd)
   window.addEventListener('touchmove', onDragMove, { passive: false })
   window.addEventListener('touchend', onDragEnd)
-  
+
   await auth.init()
   try {
     academies.value = await fetchAcademies()
@@ -1374,17 +1419,6 @@ onMounted(async () => {
   } finally {
     // loading은 이미 false로 설정됨
   }
-  // 필터(대상연령/과목) 높이 변경 시 학원 목록 최대 높이 재적용
-  nextTick(() => {
-    const el = categoryBarRef.value
-    if (!el || typeof ResizeObserver === 'undefined') return
-    categoryBarResizeObserver = new ResizeObserver(() => {
-      if (!isMobile.value) return
-      const maxPx = getMaxSheetHeightPx()
-      if (bottomSheetHeight.value > maxPx) bottomSheetHeight.value = maxPx
-    })
-    categoryBarResizeObserver.observe(el)
-  })
   const stored = sessionStorage.getItem('openComposerAfterAuth')
   if (stored && auth.isAuthenticated) {
     sessionStorage.removeItem('openComposerAfterAuth')
@@ -1401,6 +1435,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  subHeaderStore.clear()
   categoryBarResizeObserver?.disconnect()
   categoryBarResizeObserver = null
   document.removeEventListener('click', onDocumentClick)
@@ -1424,29 +1459,6 @@ onBeforeUnmount(() => {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-}
-
-.map-page-header {
-  flex-shrink: 0;
-  padding: v.$space-md v.$space-lg;
-  background: v.$color-bg-base;
-  border-bottom: 1px solid v.$color-border-dim;
-
-  @media (min-width: 768px) {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
-}
-
-.map-page-filter-section {
-  display: flex;
-  flex-direction: column;
-  gap: v.$space-md;
-
-  /* 필터 섹션 안에서는 MapCategoryBar 패딩 제거(헤더 패딩으로 통일) */
-  :deep(.map-category-bar) {
-    padding: 0;
-  }
 }
 
 .map-content {

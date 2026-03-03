@@ -1,92 +1,76 @@
 <template>
   <header
-    class="flex items-center justify-between flex-wrap gap-md p-sm px-lg border-b bg-base"
-    :class="{ 'header-px-2rem': route.path === '/' || route.path.startsWith('/admin') }"
+    class="header-root border-b bg-base"
+    :class="{
+      'page-padding': route.path === '/' || route.path.startsWith('/admin'),
+      'has-sub': !!subHeaderStore.entry,
+    }"
   >
-    <div class="flex items-center gap-lg flex-wrap">
-      <div class="flex items-center gap-sm">
-        <button
-        v-if="route.path !== '/' && !route.path.startsWith('/admin')"
-        type="button"
-        class="btn btn-icon-only btn-rounded mr-sm"
-        aria-label="뒤로가기"
-        @click="goBack"
-      >
-        <Icon :path="mdiChevronLeft" />
-      </button>
-
-        <!-- 학부모 또는 학생인 경우 이름 표시 -->
-        <template v-if="profile.profile && (profile.profile.user_type === 'parent' || profile.profile.user_type === 'student')">
-          <button
-            type="button"
-            class="name-btn"
-            @click="profile.showProfileModal = true"
-          >
-            <h4>{{ profile.displayName }}</h4>
-            <Icon class="icon-xs color-dim" :path="mdiChevronDown" />
-          </button>
-        </template>
-
-        <!-- 우리 동네 (통합: 내 위치 chip 이름 / 선택 요약) -->
-        <template v-if="myNeighborhood.loading">
-          <p class="type-size-sm color-dim">가져오는 중…</p>
-        </template>
-        <template v-else-if="headerLocationSummary">
-          <button
-            type="button"
-            class="name-btn"
-            aria-label="동네 찾기"
-            @click="myNeighborhood.showLocationSelectModal = true"
-          >
-            <h4>{{ headerLocationSummary.name }}</h4>
-            <p v-if="headerLocationSummary.extra" class="type-weight-semibold type-size-sm color-dimmer">
-              {{ headerLocationSummary.extra }}
-            </p>
-            <Icon class="icon-xs color-dim" :path="mdiChevronDown" />
-          </button>
-        </template>
-        <button
-          v-if="!headerLocationSummary"
-          type="button"
-          class="link"
-          @click="myNeighborhood.showLocationSelectModal = true"
+    <div class="header-inner flex items-center justify-between gap-md p-sm px-lg">
+      <div class="header-left flex-shrink-0">
+        <router-link
+          v-if="subHeaderStore.entry"
+          to="/"
+          class="header-logo"
+          aria-label="홈"
         >
-          동네 찾기
+          <img src="/logo-du.png" alt="DU" class="header-logo-img" />
+        </router-link>
+        <button
+          v-else-if="route.path !== '/' && !route.path.startsWith('/admin')"
+          type="button"
+          class="btn btn-icon-only btn-rounded"
+          aria-label="뒤로가기"
+          @click="goBack"
+        >
+          <Icon :path="mdiChevronLeft" />
         </button>
       </div>
-    </div>
-    
-    <div class="flex items-center gap-md">
-      <template v-if="auth.isAuthenticated">
-        <div class="header-user-wrap">
-          <button
-            type="button"
-            class="header-avatar-btn"
-            aria-label="사용자 메뉴"
-            aria-haspopup="true"
-            :aria-expanded="showUserMenu"
-            @click="showUserMenu = !showUserMenu"
-          >
-            <Avatar
-              :profile-image-url="profile.profile?.profile_image_url"
-              :nickname="profile.profile?.nickname ?? ''"
-              size="sm"
+
+      <div
+        v-if="subHeaderStore.entry"
+        :ref="(el) => subHeaderStore.setWrapperRef(el as HTMLElement | null)"
+        class="header-sub flex-shrink-0 bg-base w-full min-w-0"
+      >
+        <component
+          :is="subHeaderStore.entry.component"
+          v-bind="subHeaderStore.entry.props"
+          v-on="subHeaderStore.entry.listeners"
+        />
+      </div>
+
+      <div class="header-right flex-shrink-0">
+        <template v-if="auth.isAuthenticated">
+          <div class="header-user-wrap">
+            <button
+              type="button"
+              class="header-avatar-btn"
+              aria-label="사용자 메뉴"
+              aria-haspopup="true"
+              :aria-expanded="showUserMenu"
+              @click="showUserMenu = !showUserMenu"
+            >
+              <Avatar
+                :profile-image-url="profile.profile?.profile_image_url"
+                :nickname="profile.profile?.nickname ?? ''"
+                size="sm"
+              />
+            </button>
+            <HeaderUserDropdown
+              :open="showUserMenu"
+              :user-type-label="userTypeLabel"
+              :nickname="profile.profile?.nickname ?? '—'"
+              :show-admin="!isAdminRoute"
+              @close="showUserMenu = false"
+              @admin="router.push('/admin')"
+              @sign-out="auth.signOut()"
             />
-          </button>
-          <HeaderUserDropdown
-            :open="showUserMenu"
-            :user-type-label="userTypeLabel"
-            :nickname="profile.profile?.nickname ?? '—'"
-            :show-admin="!isAdminRoute"
-            @close="showUserMenu = false"
-            @admin="router.push('/admin')"
-            @sign-out="auth.signOut()"
-          />
-        </div>
-      </template>
-      <template v-else>
-        <button type="button" class="btn btn-primary" @click="emit('open-login')">로그인</button>
-      </template>
+          </div>
+        </template>
+        <template v-else>
+          <button type="button" class="btn btn-primary" @click="emit('open-login')">로그인</button>
+        </template>
+      </div>
     </div>
   </header>
 
@@ -101,19 +85,19 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/shared/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
-import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
 import ProfileInfoModal from '@/components/modals/ProfileInfoModal.vue'
 import HeaderUserDropdown from '@/components/shared/HeaderUserDropdown.vue'
 import Avatar from './Avatar.vue'
 import { useProfileStore, getUserTypeLabel } from '@/stores/profile'
-import { mdiChevronLeft, mdiChevronDown } from '@mdi/js'
+import { useSubHeaderStore } from '@/stores/subHeader'
+import { mdiChevronLeft } from '@mdi/js'
 
 const emit = defineEmits<{ 'open-login': [] }>()
+const subHeaderStore = useSubHeaderStore()
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const myNeighborhood = useMyNeighborhoodStore()
 const profile = useProfileStore()
 const showUserMenu = ref(false)
 
@@ -121,38 +105,116 @@ const isAdminRoute = computed(() => /^\/admin/.test(route.path))
 
 const userTypeLabel = computed(() => getUserTypeLabel(profile.profile?.user_type))
 
-const addrKey = (a: { sido: string; gugun: string; dong?: string }) =>
-  `${a.sido}|${a.gugun}|${a.dong ?? ''}`
-
-/** 헤더에 표시할 동네 요약 (이름 + optional "(+ N)" 은 <p>로 표시) */
-const headerLocationSummary = computed(() => {
-  const list = myNeighborhood.selectedAddresses
-  const my = myNeighborhood.myLocationAddress
-  const others = my ? list.filter((a) => addrKey(a) !== addrKey(my)) : list
-
-  if (my) {
-    const name = my.dong ?? my.gugun
-    if (others.length === 0) return { name, extra: null }
-    return { name, extra: `+${others.length}` }
-  }
-  if (list.length === 0) return null
-  const first = list[0]
-  const firstName = first.dong ?? first.gugun
-  if (list.length === 1) return { name: firstName, extra: null }
-  return { name: firstName, extra: `+${list.length - 1}` }
-})
-
 function goBack() {
   router.back()
 }
 </script>
 
 <style lang="scss" scoped>
-/* 지도 페이지(/)일 때 태블릿·데스크톱에서 헤더 좌우 2rem */
-.header-px-2rem {
-  @media (min-width: 768px) {
-    padding-left: 2rem;
-    padding-right: 2rem;
+.header-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.header-inner {
+  min-height: 3.25rem;
+}
+
+/* 모바일: 좌우 한 줄 + 서브헤더는 아래 전체 너비 */
+.header-root:not(.has-sub) .header-inner {
+  flex-wrap: nowrap;
+}
+
+/* 모바일 + 서브헤더: 1행 로고|아바타, 2행 서브헤더 전체 */
+.header-root.has-sub .header-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0 v.$space-md;
+}
+
+.header-root.has-sub .header-left {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.header-root.has-sub .header-right {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.header-root.has-sub .header-sub {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  min-width: 0;
+  background: v.$color-bg-base;
+
+  @media (max-width: 768px) {
+    margin-top: v.$space-md;
+  }
+}
+
+/* 태블릿·데스크톱: 로고 | 서브헤더(max-width) | 아바타 한 줄 */
+@media (min-width: 768px) {
+  .header-root.has-sub .header-inner {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-left: 0;
+    padding-right: 0;
+    /* 좌우 패딩은 .header-root.page-padding에서 적용 */
+  }
+
+  .header-root.has-sub .header-left {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .header-root.has-sub .header-sub {
+    grid-column: auto;
+    grid-row: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 36rem; /* 576px — 에어비앤비 검색바 스타일 */
+    margin: 0 v.$space-lg;
+    border-top: none;
+  }
+
+  .header-root.has-sub .header-right {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+
+  &:hover .header-logo-img {
+    opacity: 0.85;
+  }
+}
+
+.header-logo-img {
+  display: block;
+  height: 1.75rem;
+  width: auto;
+  object-fit: contain;
+  transition: opacity 0.15s ease;
+}
+
+/* 지도 페이지 등에서 사용하는 서브 헤더(필터/검색 바) */
+.header-sub {
+  :deep(.map-category-bar) {
+    padding: 0;
+    width: 100%;
+    min-width: 0;
   }
 }
 

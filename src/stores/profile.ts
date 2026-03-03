@@ -76,6 +76,8 @@ export const useProfileStore = defineStore('profile', () => {
   const selectedChildIndex = ref<number | null>(null)
   /** 프로필 선택 모달 열림 여부 (헤더·지도 검색 바 연령 등에서 사용) */
   const showProfileModal = ref(false)
+  /** 지도 필터용 연령 그룹 (프로필 모달에서 선택, MapPageView에서 소비) */
+  const selectedAgeGroupsForMap = ref<string[]>([])
 
   const isOnboardingCompleted = computed(() => profile.value?.onboarding_completed ?? false)
   
@@ -250,6 +252,13 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  function toggleAgeGroupForMap(opt: string) {
+    const list = selectedAgeGroupsForMap.value
+    const i = list.indexOf(opt)
+    if (i === -1) selectedAgeGroupsForMap.value = [...list, opt]
+    else selectedAgeGroupsForMap.value = list.filter((x) => x !== opt)
+  }
+
   return {
     profile,
     children,
@@ -258,6 +267,7 @@ export const useProfileStore = defineStore('profile', () => {
     currentChild,
     selectedChildIndex,
     showProfileModal,
+    selectedAgeGroupsForMap,
     displayName,
     loadProfile,
     refresh,
@@ -265,5 +275,6 @@ export const useProfileStore = defineStore('profile', () => {
     updateChildren,
     upsertProfile,
     selectChild,
+    toggleAgeGroupForMap,
   }
 })

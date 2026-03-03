@@ -1,117 +1,166 @@
 <template>
   <div ref="barRef" class="map-category-bar">
-    <!-- 에어비앤비 스타일 검색 바: 연령 | 장소 | 검색 -->
-    <div class="map-search-bar">
-      <button
-        type="button"
-        class="map-search-segment"
-        :class="{ 'map-search-segment-active': openPanel === 'age' }"
-        aria-haspopup="true"
-        :aria-expanded="openPanel === 'age'"
-        @click="togglePanel('age')"
+    <!-- 검색 바 + 자동완성(검색 바 바로 밑 floating) -->
+    <div class="map-search-bar-wrap">
+      <!-- 검색 확장 시: 프로필·장소 없이 전체가 검색 인풋 -->
+      <div class="map-search-bar">
+      <template v-if="!isSearchExpanded">
+        <button
+          type="button"
+          class="map-search-segment map-search-segment--fixed"
+          aria-label="프로필 선택"
+          @click="profile.showProfileModal = true"
+        >
+          <span class="type-size-2xs type-weight-semibold color-dim">프로필</span>
+          <span class="type-size-sm type-weight-semibold">
+            {{ profileSegmentValue }}
+          </span>
+        </button>
+        <div class="map-search-segment-divider" aria-hidden="true" />
+        <button
+          type="button"
+          class="map-search-segment map-search-segment--fixed"
+          aria-haspopup="dialog"
+          aria-label="동네 찾기"
+          @click="openLocationModal"
+        >
+          <span class="type-size-2xs type-weight-semibold color-dim">장소</span>
+          <span
+            v-if="myNeighborhood.loading"
+            class="type-size-sm type-weight-semibold color-dim"
+            >가져오는 중…</span
+          >
+          <span
+            v-else-if="locationSummaryData"
+            class="map-search-segment-value map-search-segment-value--location"
+          >
+            <span class="type-size-sm type-weight-semibold">{{
+              locationSummaryData.name
+            }}</span>
+            <span
+              v-if="locationSummaryData.extra"
+              class="type-size-2xs type-weight-semibold color-dim"
+              >{{ locationSummaryData.extra }}</span
+            >
+            <Icon
+              class="map-search-segment-chevron icon-xs"
+              :path="mdiChevronDown"
+            />
+          </span>
+          <span v-else class="type-size-sm type-weight-semibold"
+            >동네 찾기</span
+          >
+        </button>
+        <div class="map-search-segment-divider" aria-hidden="true" />
+      </template>
+      <div
+        class="map-search-search-input-wrap"
+        :class="{
+          'map-search-segment-active':
+            (isSearchFocused || isSearchExpanded) && searchQuery.trim(),
+          'map-search-search-input-wrap--full': isSearchExpanded,
+        }"
       >
-        <span class="map-search-segment-label">연령</span>
-        <span class="map-search-segment-value color-dim">
-          {{ ageSummary }}
-        </span>
-      </button>
-      <div class="map-search-segment-divider" aria-hidden="true" />
-      <button
-        type="button"
-        class="map-search-segment"
-        aria-haspopup="dialog"
-        @click="openLocationModal"
-      >
-        <span class="map-search-segment-label">장소</span>
-        <span class="map-search-segment-value color-dim">
-          {{ locationSummary }}
-        </span>
-      </button>
-      <div class="map-search-segment-divider" aria-hidden="true" />
-      <button
-        type="button"
-        class="map-search-segment map-search-search-btn"
-        :class="{ 'map-search-segment-active': openPanel === 'search' }"
-        aria-haspopup="true"
-        :aria-expanded="openPanel === 'search'"
-        @click="togglePanel('search')"
-      >
-        <Icon class="map-search-search-icon" :path="mdiMagnify" />
-        <span>검색</span>
-      </button>
+        <Transition name="search-expand" mode="out-in">
+          <div
+            v-if="!isSearchExpanded"
+            key="normal"
+            class="map-search-input-area map-search-trigger"
+            role="button"
+            tabindex="0"
+            aria-label="검색하기"
+            @click="expandSearch"
+            @keydown.enter.prevent="expandSearch"
+            @keydown.space.prevent="expandSearch"
+          >
+            <span class="type-size-2xs type-weight-semibold color-dim">검색</span>
+            <span class="type-size-sm type-weight-semibold">
+              {{ searchQuery || "학원명, 주소" }}
+            </span>
+          </div>
+          <div
+            v-else
+            key="expanded"
+            class="map-search-input-area map-search-input-area--expanded"
+          >
+            <input
+              ref="expandedSearchInputRef"
+              v-model="searchQuery"
+              type="search"
+              class="map-search-input type-size-sm type-weight-semibold"
+              placeholder="학원명, 주소"
+              autocomplete="off"
+              aria-label="학원 검색"
+              @focus="isSearchFocused = true"
+              @blur="onSearchBlur"
+            />
+            <button
+              type="button"
+              class="btn btn-icon-only"
+              aria-label="검색 닫기"
+              @mousedown.prevent="collapseSearch"
+            >
+              <Icon class="icon-2xs" :path="mdiClose" />
+            </button>
+          </div>
+        </Transition>
+        <button
+          type="button"
+          class="btn btn-primary btn-rounded btn-large"
+          aria-label="검색"
+          @mousedown.prevent="expandedSearchInputRef?.focus()"
+          @click="expandSearch"
+        >
+          <Icon class="map-search-circle-icon" :path="mdiMagnify" />
+        </button>
+      </div>
     </div>
 
-    <!-- 연령 드롭다운: 프로필(자녀) 선택 + 연령 칩 -->
+    <!-- 자동완성: 검색 바 바로 밑에 floating -->
     <Transition name="dropdown">
       <div
-        v-if="openPanel === 'age'"
-        v-show="openPanel === 'age'"
-        class="map-search-dropdown"
-        role="dialog"
-        aria-label="연령 선택"
+        v-if="(isSearchFocused || isSearchExpanded) && searchQuery.trim()"
+        class="map-search-suggestions-dropdown"
+        role="listbox"
+        aria-label=" 결과"
       >
-        <div v-if="profile.profile?.user_type === 'parent' && profile.children.length" class="map-search-dropdown-section">
-          <p class="map-search-dropdown-heading">프로필</p>
-          <div class="map-search-dropdown-chips">
-            <button
-              type="button"
-              class="chip"
-              :class="{ 'chip-active': profile.selectedChildIndex === null }"
-              @click="profile.selectChild(null)"
+        <template v-if="searchSuggestions.length">
+          <button
+            v-for="academy in searchSuggestions"
+            :key="academy.id"
+            type="button"
+            class="map-search-suggestion"
+            role="option"
+            @mousedown.prevent="selectSuggestion(academy)"
+          >
+            <p class="map-search-suggestion-name">{{ academy.name }}</p>
+            <p
+              v-if="academy.address || academy.address_road"
+              class="map-search-suggestion-address color-dim"
             >
-              전체
-            </button>
-            <button
-              v-for="(_, idx) in profile.children"
-              :key="idx"
-              type="button"
-              class="chip"
-              :class="{ 'chip-active': profile.selectedChildIndex === idx }"
-              @click="profile.selectChild(idx)"
-            >
-              {{ getChildOrderLabel(idx) }}
-            </button>
-          </div>
-        </div>
-        <div class="map-search-dropdown-section">
-          <p class="map-search-dropdown-heading">연령</p>
-          <div class="map-search-dropdown-chips">
-            <button
-              v-for="opt in AGE_GROUP_ORDER"
-              :key="'age-' + opt"
-              type="button"
-              class="chip"
-              :class="{ 'chip-active': selectedAgeGroups.includes(opt) }"
-              @click="$emit('toggleAgeGroup', opt)"
-            >
-              {{ opt }}
-            </button>
-          </div>
-        </div>
+              <template v-if="academy.address">{{ academy.address }}</template>
+              <template v-if="academy.address && academy.address_road">
+                ·
+              </template>
+              <template v-if="academy.address_road">{{
+                academy.address_road
+              }}</template>
+            </p>
+          </button>
+        </template>
+        <p v-else class="map-search-empty color-dim"> 결과가 없습니다.</p>
       </div>
     </Transition>
+    </div>
 
-    <!-- 검색 드롭다운: 학원명·주소 검색 -->
-    <Transition name="dropdown">
-      <div
-        v-if="openPanel === 'search'"
-        v-show="openPanel === 'search'"
-        class="map-search-dropdown map-search-dropdown-search"
-        role="dialog"
-        aria-label="학원 검색"
-      >
-        <MapSearch
-          :academies="academies"
-          :loading="loading"
-          @select="onSearchSelect"
-          @clear-search="emit('clearSearch')"
-        />
-      </div>
-    </Transition>
-
-    <!-- 과목: 검색 바 아래 -->
-    <div v-if="subjectOptions.length" class="map-category-row map-category-row-subjects">
-      <p class="map-category-label type-size-sm type-weight-semibold color-dim">과목</p>
+    <!-- 과목: 검색 확장 여부와 관계없이 항상 표시 -->
+    <div
+      v-if="subjectOptions.length"
+      class="map-category-row map-category-row-subjects"
+    >
+      <p class="map-category-label type-size-sm type-weight-semibold color-dim">
+        과목
+      </p>
       <div class="map-category-chips">
         <ButtonSubject
           v-for="opt in subjectOptions"
@@ -127,90 +176,155 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import type { Academy } from '@/types/academy'
-import MapSearch from '@/components/mappage/MapSearch.vue'
-import ButtonSubject from '@/components/shared/ButtonSubject.vue'
-import Icon from '@/components/shared/Icon.vue'
-import { mdiMagnify } from '@mdi/js'
-import { useMyNeighborhoodStore } from '@/stores/myNeighborhood'
-import { useProfileStore, getChildOrderLabel } from '@/stores/profile'
-import { AGE_GROUP_ORDER, SUBJECT_LIST, getCanonicalSubjects, getSubjectImage, type Subject } from '@/constants/subjectTypes'
+import {
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+} from "vue";
+import type { Academy } from "@/types/academy";
+import ButtonSubject from "@/components/shared/ButtonSubject.vue";
+import Icon from "@/components/shared/Icon.vue";
+import { mdiMagnify, mdiChevronDown, mdiClose } from "@mdi/js";
+import { useMyNeighborhoodStore } from "@/stores/myNeighborhood";
+import { useProfileStore } from "@/stores/profile";
+import {
+  SUBJECT_LIST,
+  getCanonicalSubjects,
+  getSubjectImage,
+  type Subject,
+} from "@/constants/subjectTypes";
 
 const props = defineProps<{
-  academies: Academy[]
-  loading: boolean
-  selectedAgeGroups: string[]
-  selectedSubjects: string[]
-}>()
+  academies: Academy[];
+  loading: boolean;
+  selectedSubjects: string[];
+}>();
 
 const emit = defineEmits<{
-  toggleAgeGroup: [opt: string]
-  toggleSubject: [opt: string]
-  select: [academy: Academy]
-  clearSearch: []
-}>()
+  toggleSubject: [opt: string];
+  select: [academy: Academy];
+  clearSearch: [];
+}>();
 
-const myNeighborhood = useMyNeighborhoodStore()
-const profile = useProfileStore()
-const barRef = ref<HTMLElement | null>(null)
-const openPanel = ref<'age' | 'search' | null>(null)
+const myNeighborhood = useMyNeighborhoodStore();
+const profile = useProfileStore();
+const barRef = ref<HTMLElement | null>(null);
+const expandedSearchInputRef = ref<HTMLInputElement | null>(null);
+const searchQuery = ref("");
+const isSearchFocused = ref(false);
+const isSearchExpanded = ref(false);
 
-function togglePanel(panel: 'age' | 'search') {
-  const willOpen = openPanel.value !== panel
-  openPanel.value = openPanel.value === panel ? null : panel
-  if (panel === 'age' && willOpen) {
-    profile.showProfileModal = true
-  }
-}
+watch(searchQuery, (q) => {
+  if (!q?.trim()) emit("clearSearch");
+});
 
 function openLocationModal() {
-  openPanel.value = null
-  myNeighborhood.showLocationSelectModal = true
+  myNeighborhood.showLocationSelectModal = true;
 }
 
-function onSearchSelect(academy: Academy) {
-  openPanel.value = null
-  emit('select', academy)
+function expandSearch() {
+  isSearchExpanded.value = true;
+  isSearchFocused.value = true;
+  nextTick(() => {
+    expandedSearchInputRef.value?.focus();
+  });
+}
+
+function collapseSearch() {
+  isSearchExpanded.value = false;
+  isSearchFocused.value = false;
+}
+
+function onSearchBlur() {
+  // mousedown on suggestion 시 먼저 selectSuggestion 실행되도록 지연
+  setTimeout(() => {
+    isSearchFocused.value = false;
+    isSearchExpanded.value = false;
+  }, 150);
+}
+
+function selectSuggestion(academy: Academy) {
+  searchQuery.value = academy.name;
+  isSearchFocused.value = false;
+  isSearchExpanded.value = false;
+  emit("select", academy);
 }
 
 function onDocumentClick(e: MouseEvent) {
   if (barRef.value && !barRef.value.contains(e.target as Node)) {
-    openPanel.value = null
+    isSearchFocused.value = false;
+    isSearchExpanded.value = false;
   }
 }
 
 onMounted(() => {
-  document.addEventListener('click', onDocumentClick)
-})
+  document.addEventListener("click", onDocumentClick);
+});
 onBeforeUnmount(() => {
-  document.removeEventListener('click', onDocumentClick)
-})
+  document.removeEventListener("click", onDocumentClick);
+});
 
-const ageSummary = computed(() => {
-  if (!props.selectedAgeGroups.length) return '연령 선택'
-  return props.selectedAgeGroups.join(', ')
-})
+/** 프로필 세그먼트에 표시할 값: 학부모/학생이면 이름, 아니면 '프로필 선택' */
+const profileSegmentValue = computed(() => {
+  const p = profile.profile;
+  if (p && (p.user_type === "parent" || p.user_type === "student"))
+    return profile.displayName;
+  return "프로필 선택";
+});
 
-const locationSummary = computed(() => {
-  const s = myNeighborhood.selectedAddressSummary
-  return s ?? '동네 찾기'
-})
+const addrKey = (a: { sido: string; gugun: string; dong?: string }) =>
+  `${a.sido}|${a.gugun}|${a.dong ?? ""}`;
+
+/** 헤더와 동일: 동네 요약 (이름 + optional "+ N") */
+const locationSummaryData = computed(() => {
+  const list = myNeighborhood.selectedAddresses;
+  const my = myNeighborhood.myLocationAddress;
+  const others = my ? list.filter((a) => addrKey(a) !== addrKey(my)) : list;
+
+  if (my) {
+    const name = my.dong ?? my.gugun;
+    if (others.length === 0) return { name, extra: null };
+    return { name, extra: `+${others.length}` };
+  }
+  if (list.length === 0) return null;
+  const first = list[0];
+  const firstName = first.dong ?? first.gugun;
+  if (list.length === 1) return { name: firstName, extra: null };
+  return { name: firstName, extra: `+${list.length - 1}` };
+});
 
 const subjectOptions = computed(() => {
-  const canonicalSet = new Set<Subject>()
+  const canonicalSet = new Set<Subject>();
   props.academies.forEach((a) => {
-    getCanonicalSubjects(a.subjects ?? []).forEach((c) => canonicalSet.add(c))
-  })
+    getCanonicalSubjects(a.subjects ?? []).forEach((c) => canonicalSet.add(c));
+  });
   return Array.from(canonicalSet).sort((a, b) => {
-    const i = SUBJECT_LIST.indexOf(a)
-    const j = SUBJECT_LIST.indexOf(b)
-    if (i !== -1 && j !== -1) return i - j
-    if (i !== -1) return -1
-    if (j !== -1) return 1
-    return a.localeCompare(b)
-  })
-})
+    const i = SUBJECT_LIST.indexOf(a);
+    const j = SUBJECT_LIST.indexOf(b);
+    if (i !== -1 && j !== -1) return i - j;
+    if (i !== -1) return -1;
+    if (j !== -1) return 1;
+    return a.localeCompare(b);
+  });
+});
+
+/** 선택된 지역·연령·과목 내 학원 중 어와 일치하는 목록 (자동완성용) */
+const searchSuggestions = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase();
+  if (!q) return [];
+  return props.academies
+    .filter((a) => {
+      const nameMatch = a.name.toLowerCase().includes(q);
+      const addressMatch =
+        (a.address ?? "").toLowerCase().includes(q) ||
+        (a.address_road ?? "").toLowerCase().includes(q);
+      return nameMatch || addressMatch;
+    })
+    .slice(0, 8);
+});
 </script>
 
 <style lang="scss" scoped>
@@ -220,22 +334,74 @@ const subjectOptions = computed(() => {
   display: flex;
   flex-direction: column;
   gap: v.$space-md;
-  padding: v.$space-md v.$space-lg;
   background: v.$color-bg-base;
+}
 
-  @media (min-width: 768px) {
-    padding-left: 2rem;
-    padding-right: 2rem;
+/* 검색 바 + 자동완성 floating 기준 */
+.map-search-bar-wrap {
+  position: relative;
+}
+
+/* 확장 시 실제 입력 필드 (일반 모드는 div 트리거만 있어서 인풋 전용 스타일만) */
+.map-search-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  white-space: nowrap;
+
+  &::placeholder {
+    color: v.$color-text-dim;
   }
+
+  &:focus {
+    outline: none;
+  }
+
+  /* 브라우저 기본 검색 지우기(X) 버튼 숨김 */
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+  &::-moz-search-cancel-button {
+    display: none;
+  }
+}
+
+.map-search-close-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: v.$color-text-dim;
+  cursor: pointer;
+  transition: color v.$transition-fast, background-color v.$transition-fast;
+
+  &:hover {
+    color: v.$color-text-base;
+    background: v.$color-bg-dim;
+  }
+}
+
+.map-search-close-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .map-search-bar {
   display: flex;
   align-items: stretch;
   min-height: 3.25rem;
+  border: 1px solid v.$color-border-dim;
+
   background: v.$color-bg-dim;
   border-radius: v.$radius-full;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
@@ -267,6 +433,13 @@ const subjectOptions = computed(() => {
   &.map-search-segment-active {
     background: v.$color-bg-dim;
   }
+
+  &.map-search-segment--fixed {
+    width: fit-content;
+    min-width: 4rem;
+    max-width: fit-content;
+    padding-right: v.$space-lg;
+  }
 }
 
 .map-search-segment-divider {
@@ -275,56 +448,101 @@ const subjectOptions = computed(() => {
   flex-shrink: 0;
 }
 
-.map-search-segment-label {
-  font-size: 0.625rem;
-  font-weight: 600;
-  line-height: 1.2;
-  color: v.$color-text-dim;
+/* 장소 세그먼트: 이름 + optional "+ N" + chevron (헤더 동네와 동일 스타일) */
+.map-search-segment-value--location {
+  display: flex;
+  align-items: center;
+  gap: v.$space-xs;
+  min-width: 0;
+  white-space: normal;
 }
 
-.map-search-segment-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+.map-search-segment-chevron {
+  flex-shrink: 0;
 }
 
-.map-search-search-btn {
-  flex: 0 1 auto;
-  min-width: 4rem;
+/* : 흰색 입력 영역 + 오른쪽 원형 빨간  버튼 */
+.map-search-search-input-wrap {
+  flex: 1;
+  min-width: 8rem;
+  display: flex;
   flex-direction: row;
   align-items: center;
+  padding-right: v.$space-2xs;
+  min-height: 3.5rem;
+  background: v.$color-bg-base;
+  border-radius: 0 v.$radius-full v.$radius-full 0;
+  overflow: hidden;
+
+  &.map-search-segment-active {
+    background: v.$color-bg-dimmer;
+  }
+
+  /* 검색 확장 시: 프로필·장소 없이 전체가 검색이라 좌측도 둥글게 */
+  &.map-search-search-input-wrap--full {
+    border-radius: v.$radius-full;
+  }
+}
+
+.map-search-input-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
+  gap: v.$space-2xs;
+  padding: v.$space-sm v.$space-md;
+}
+
+.map-search-input-area--expanded {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: v.$space-xs;
+}
+
+.map-search-trigger {
+  cursor: pointer;
+}
+
+.map-search-circle-btn {
+  flex-shrink: 0;
+  width: 3.25rem;
+  min-width: 3.25rem;
+  height: 3.25rem;
+  min-height: 3.25rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
   background: v.$color-primary;
   color: v.$color-text-inverse;
-  border-radius: 0 v.$radius-full v.$radius-full 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color v.$transition-fast;
 
   &:hover {
     background: v.$color-primary-strong;
   }
-
-  &.map-search-segment-active {
-    background: v.$color-primary-strong;
-  }
 }
 
-.map-search-search-icon {
-  flex-shrink: 0;
-  width: 1.125rem;
-  height: 1.125rem;
+.map-search-circle-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-.map-search-dropdown {
+/* 자동완성: 검색 바 바로 밑에 floating (과목 행 위로 겹침) */
+.map-search-suggestions-dropdown {
   position: absolute;
   top: 100%;
-  left: v.$space-lg;
-  right: v.$space-lg;
+  left: 0;
+  right: 0;
   margin-top: v.$space-xs;
-  padding: v.$space-md;
   max-height: 20rem;
   overflow-y: auto;
   background: v.$color-bg-base;
@@ -332,47 +550,67 @@ const subjectOptions = computed(() => {
   border-radius: v.$radius-md;
   z-index: v.$z-dropdown;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-
-  @media (min-width: 768px) {
-    left: 2rem;
-    right: 2rem;
-  }
 }
 
-.map-search-dropdown-search {
-  padding: v.$space-sm;
-}
-
-.map-search-dropdown-section {
-  margin-bottom: v.$space-md;
+.map-search-suggestion {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding: v.$space-md;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  border-bottom: 1px solid v.$color-border-dim;
+  transition: background-color v.$transition-fast;
 
   &:last-child {
-    margin-bottom: 0;
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: v.$color-bg-hover;
   }
 }
 
-.map-search-dropdown-heading {
-  margin: 0 0 v.$space-xs;
-  font-size: 0.75rem;
+.map-search-suggestion-name {
+  margin: 0;
   font-weight: 600;
-  color: v.$color-text-dim;
 }
 
-.map-search-dropdown-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: v.$space-xs;
+.map-search-suggestion-address {
+  margin: v.$space-2xs 0 0;
+  font-size: 0.8125rem;
+}
+
+.map-search-empty {
+  margin: 0;
+  padding: v.$space-md;
 }
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity v.$transition-fast, transform v.$transition-fast;
+  transition:
+    opacity v.$transition-fast,
+    transform v.$transition-fast;
 }
 
 .dropdown-enter-from,
 .dropdown-leave-to {
   opacity: 0;
   transform: translateY(-0.25rem);
+}
+
+.search-expand-enter-active,
+.search-expand-leave-active {
+  transition: opacity v.$transition-base;
+}
+
+.search-expand-enter-from,
+.search-expand-leave-to {
+  opacity: 0;
 }
 
 .map-category-row {

@@ -267,6 +267,14 @@ p {
 .pl-3xl { padding-left: s.$space-3xl; }
 .pl-4xl { padding-left: s.$space-4xl; }
 
+// 페이지 패딩: 태블릿·데스크톱(768px 이상)에서 좌우 2rem (헤더·서브헤더·필터 바 등)
+.page-padding {
+  @media (min-width: s.$page-padding-breakpoint) {
+    padding-left: s.$page-padding-x;
+    padding-right: s.$page-padding-x;
+  }
+}
+
 // Padding - 오른쪽
 .pr-2xs { padding-right: s.$space-2xs; }
 .pr-xs { padding-right: s.$space-xs; }
