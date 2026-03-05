@@ -4,173 +4,186 @@
     <div class="map-search-bar-wrap">
       <!-- 검색 확장 시: 프로필·장소 없이 전체가 검색 인풋 -->
       <div class="map-search-bar">
-      <template v-if="!isSearchExpanded">
-        <button
-          type="button"
-          class="map-search-segment map-search-segment--fixed"
-          aria-label="프로필 선택"
-          @click="profile.showProfileModal = true"
-        >
-          <span class="type-size-2xs type-weight-semibold color-dim">프로필</span>
-          <span class="type-size-sm type-weight-semibold">
-            {{ profileSegmentValue }}
-          </span>
-        </button>
-        <div class="map-search-segment-divider" aria-hidden="true" />
-        <button
-          type="button"
-          class="map-search-segment map-search-segment--fixed"
-          aria-haspopup="dialog"
-          aria-label="동네 찾기"
-          @click="openLocationModal"
-        >
-          <span class="type-size-2xs type-weight-semibold color-dim">장소</span>
-          <span
-            v-if="myNeighborhood.loading"
-            class="type-size-sm type-weight-semibold color-dim"
-            >가져오는 중…</span
-          >
-          <span
-            v-else-if="locationSummaryData"
-            class="map-search-segment-value map-search-segment-value--location"
-          >
-            <span class="type-size-sm type-weight-semibold">{{
-              locationSummaryData.name
-            }}</span>
-            <span
-              v-if="locationSummaryData.extra"
-              class="type-size-2xs type-weight-semibold color-dim"
-              >{{ locationSummaryData.extra }}</span
-            >
-            <Icon
-              class="map-search-segment-chevron icon-xs"
-              :path="mdiChevronDown"
-            />
-          </span>
-          <span v-else class="type-size-sm type-weight-semibold"
-            >동네 찾기</span
-          >
-        </button>
-        <div class="map-search-segment-divider" aria-hidden="true" />
-      </template>
-      <div
-        class="map-search-search-input-wrap"
-        :class="{
-          'map-search-segment-active':
-            (isSearchFocused || isSearchExpanded) && searchQuery.trim(),
-          'map-search-search-input-wrap--full': isSearchExpanded,
-        }"
-      >
-        <Transition name="search-expand" mode="out-in">
-          <div
-            v-if="!isSearchExpanded"
-            key="normal"
-            class="map-search-input-area map-search-trigger"
-            role="button"
-            tabindex="0"
-            aria-label="검색하기"
-            @click="expandSearch"
-            @keydown.enter.prevent="expandSearch"
-            @keydown.space.prevent="expandSearch"
-          >
-            <span class="type-size-2xs type-weight-semibold color-dim">검색</span>
-            <span class="type-size-sm type-weight-semibold">
-              {{ searchQuery || "학원명, 주소" }}
-            </span>
-          </div>
-          <div
-            v-else
-            key="expanded"
-            class="map-search-input-area map-search-input-area--expanded"
-          >
-            <input
-              ref="expandedSearchInputRef"
-              v-model="searchQuery"
-              type="search"
-              class="map-search-input type-size-sm type-weight-semibold"
-              placeholder="학원명, 주소"
-              autocomplete="off"
-              aria-label="학원 검색"
-              @focus="isSearchFocused = true"
-              @blur="onSearchBlur"
-            />
-            <button
-              type="button"
-              class="btn btn-icon-only"
-              aria-label="검색 닫기"
-              @mousedown.prevent="collapseSearch"
-            >
-              <Icon class="icon-2xs" :path="mdiClose" />
-            </button>
-          </div>
-        </Transition>
-        <button
-          type="button"
-          class="btn btn-primary btn-rounded btn-large"
-          aria-label="검색"
-          @mousedown.prevent="expandedSearchInputRef?.focus()"
-          @click="expandSearch"
-        >
-          <Icon class="map-search-circle-icon" :path="mdiMagnify" />
-        </button>
-      </div>
-    </div>
-
-    <!-- 자동완성: 검색 바 바로 밑에 floating -->
-    <Transition name="dropdown">
-      <div
-        v-if="(isSearchFocused || isSearchExpanded) && searchQuery.trim()"
-        class="map-search-suggestions-dropdown"
-        role="listbox"
-        aria-label=" 결과"
-      >
-        <template v-if="searchSuggestions.length">
+        <template v-if="!isSearchExpanded">
           <button
-            v-for="academy in searchSuggestions"
-            :key="academy.id"
             type="button"
-            class="map-search-suggestion"
-            role="option"
-            @mousedown.prevent="selectSuggestion(academy)"
+            class="map-search-segment map-search-segment--fixed map-search-segment--fixed-profile"
+            aria-label="프로필 선택"
+            @click="profile.showProfileModal = true"
           >
-            <p class="map-search-suggestion-name">{{ academy.name }}</p>
-            <p
-              v-if="academy.address || academy.address_road"
-              class="map-search-suggestion-address color-dim"
-            >
-              <template v-if="academy.address">{{ academy.address }}</template>
-              <template v-if="academy.address && academy.address_road">
-                ·
-              </template>
-              <template v-if="academy.address_road">{{
-                academy.address_road
-              }}</template>
-            </p>
+            <div class="map-search-segment-inner">
+              <span class="type-size-2xs type-weight-semibold color-dim"
+                >프로필</span
+              >
+              <span class="map-search-segment-value-text type-weight-semibold"
+                >{{ profileSegmentValue }}
+              </span>
+            </div>
           </button>
+          <div class="map-search-segment-divider" aria-hidden="true" />
+          <button
+            type="button"
+            class="map-search-segment map-search-segment--fixed map-search-segment--fixed-location"
+            aria-haspopup="dialog"
+            aria-label="동네 찾기"
+            @click="openLocationModal"
+          >
+            <div class="map-search-segment-inner">
+              <span class="type-size-2xs type-weight-semibold color-dim"
+                >장소</span
+              >
+              <span
+                v-if="myNeighborhood.loading"
+                class="type-size-sm type-weight-semibold color-dim"
+                >가져오는 중…</span
+              >
+              <span
+                v-else-if="locationSummaryData"
+                class="map-search-segment-value map-search-segment-value--location"
+              >
+                <span
+                  class="map-search-segment-value-text type-weight-semibold"
+                  >{{ locationSummaryData.name }}</span
+                >
+                <span
+                  v-if="locationSummaryData.extra"
+                  class="type-size-2xs type-weight-semibold color-dim"
+                  >{{ locationSummaryData.extra }}</span
+                >
+                <Icon
+                  class="map-search-segment-chevron icon-xs"
+                  :path="mdiChevronDown"
+                />
+              </span>
+              <span
+                v-else
+                class="map-search-segment-value-text type-weight-semibold"
+                >동네 찾기</span
+              >
+            </div>
+          </button>
+          <div class="map-search-segment-divider" aria-hidden="true" />
         </template>
-        <p v-else class="map-search-empty color-dim"> 결과가 없습니다.</p>
+        <div
+          class="map-search-search-input-wrap"
+          :class="{
+            'map-search-segment-active':
+              (isSearchFocused || isSearchExpanded) && searchQuery.trim(),
+            'map-search-search-input-wrap--full': isSearchExpanded,
+          }"
+        >
+          <Transition name="search-expand" mode="out-in">
+            <div
+              v-if="!isSearchExpanded"
+              key="normal"
+              class="map-search-input-area map-search-trigger"
+              role="button"
+              tabindex="0"
+              aria-label="검색하기"
+              @click="expandSearch"
+              @keydown.enter.prevent="expandSearch"
+              @keydown.space.prevent="expandSearch"
+            >
+              <span class="type-size-2xs type-weight-semibold color-dim"
+                >검색</span
+              >
+              <p class="type-weight-semibold">
+                {{ searchQuery || "학원명, 주소" }}
+              </p>
+            </div>
+            <div
+              v-else
+              key="expanded"
+              class="map-search-input-area map-search-input-area--expanded"
+            >
+              <input
+                ref="expandedSearchInputRef"
+                v-model="searchQuery"
+                type="search"
+                class="map-search-input type-weight-semibold"
+                placeholder="학원명, 주소"
+                autocomplete="off"
+                aria-label="학원 검색"
+                @focus="isSearchFocused = true"
+                @blur="onSearchBlur"
+              />
+              <button
+                type="button"
+                class="btn btn-icon-only"
+                aria-label="검색 닫기"
+                @mousedown.prevent="collapseSearch"
+              >
+                <Icon class="icon-2xs" :path="mdiClose" />
+              </button>
+            </div>
+          </Transition>
+          <button
+            type="button"
+            class="btn btn-primary btn-rounded btn-large"
+            aria-label="검색"
+            @mousedown.prevent="expandedSearchInputRef?.focus()"
+            @click="expandSearch"
+          >
+            <Icon class="map-search-circle-icon" :path="mdiMagnify" />
+          </button>
+        </div>
       </div>
-    </Transition>
+
+      <!-- 자동완성: 검색 바 바로 밑에 floating -->
+      <Transition name="dropdown">
+        <div
+          v-if="(isSearchFocused || isSearchExpanded) && searchQuery.trim()"
+          class="map-search-suggestions-dropdown"
+          role="listbox"
+          aria-label=" 결과"
+        >
+          <template v-if="searchSuggestions.length">
+            <button
+              v-for="academy in searchSuggestions"
+              :key="academy.id"
+              type="button"
+              class="map-search-suggestion"
+              role="option"
+              @mousedown.prevent="selectSuggestion(academy)"
+            >
+              <p class="map-search-suggestion-name">{{ academy.name }}</p>
+              <p
+                v-if="academy.address || academy.address_road"
+                class="map-search-suggestion-address color-dim"
+              >
+                <template v-if="academy.address">{{
+                  academy.address
+                }}</template>
+                <template v-if="academy.address && academy.address_road">
+                  ·
+                </template>
+                <template v-if="academy.address_road">{{
+                  academy.address_road
+                }}</template>
+              </p>
+            </button>
+          </template>
+          <p v-else class="map-search-empty color-dim">결과가 없습니다.</p>
+        </div>
+      </Transition>
     </div>
 
-    <!-- 과목: 검색 확장 여부와 관계없이 항상 표시 -->
-    <div
-      v-if="subjectOptions.length"
-      class="map-category-row map-category-row-subjects"
-    >
-      <p class="map-category-label type-size-sm type-weight-semibold color-dim">
-        과목
-      </p>
-      <div class="map-category-chips">
-        <ButtonSubject
-          v-for="opt in subjectOptions"
-          :key="'sub-' + opt"
-          :label="opt"
-          :image="getSubjectImage(opt)"
-          :active="selectedSubjects.includes(opt)"
-          @click="$emit('toggleSubject', opt)"
-        />
-      </div>
+    <!-- 과목 -->
+    <div v-if="subjectOptions.length" class="map-category-subjects">
+      <ButtonSubject
+        label="전체"
+        :image="allSubjectsIconUrl"
+        :active="isAllSubjectsSelected"
+        @click="emit('selectAllSubjects', [...subjectOptions])"
+      />
+      <ButtonSubject
+        v-for="opt in subjectOptions"
+        :key="'sub-' + opt"
+        :label="opt"
+        :image="getSubjectImage(opt)"
+        :active="selectedSubjects.includes(opt)"
+        @click="emit('toggleSubject', opt)"
+      />
     </div>
   </div>
 </template>
@@ -205,6 +218,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   toggleSubject: [opt: string];
+  selectAllSubjects: [subjects: string[]];
   select: [academy: Academy];
   clearSearch: [];
 }>();
@@ -311,6 +325,15 @@ const subjectOptions = computed(() => {
   });
 });
 
+const allSubjectsIconUrl = "/all-subjects.png";
+
+const isAllSubjectsSelected = computed(() => {
+  if (!subjectOptions.value.length) return false;
+  return subjectOptions.value.every((opt) =>
+    props.selectedSubjects.includes(opt),
+  );
+});
+
 /** 선택된 지역·연령·과목 내 학원 중 어와 일치하는 목록 (자동완성용) */
 const searchSuggestions = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
@@ -333,7 +356,8 @@ const searchSuggestions = computed(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: v.$space-md;
+  gap: v.$space-xl;
+  margin-bottom: v.$space-sm;
   background: v.$color-bg-base;
 }
 
@@ -381,7 +405,9 @@ const searchSuggestions = computed(() => {
   background: none;
   color: v.$color-text-dim;
   cursor: pointer;
-  transition: color v.$transition-fast, background-color v.$transition-fast;
+  transition:
+    color v.$transition-fast,
+    background-color v.$transition-fast;
 
   &:hover {
     color: v.$color-text-base;
@@ -435,10 +461,54 @@ const searchSuggestions = computed(() => {
   }
 
   &.map-search-segment--fixed {
-    width: fit-content;
-    min-width: 4rem;
-    max-width: fit-content;
-    padding-right: v.$space-lg;
+    min-width: 0; /* 버튼 기본 min-width 무시 */
+    overflow: hidden;
+    box-sizing: border-box;
+
+    /* 내부 래퍼: 버튼 너비에 맞춰 잘라서 ellipsis 기준이 되게 함 */
+    .map-search-segment-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: v.$space-2xs;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* 값 텍스트: ellipsis (프로필 이름, 장소 이름, "동네 찾기") */
+    .map-search-segment-value-text {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* 장소 값 래퍼: flex 유지, 동 이름이 줄어들 수 있게 */
+    .map-search-segment-value--location {
+      min-width: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+  }
+
+  /* 프로필: 내용만큼 너비, 최대 7rem */
+  &.map-search-segment--fixed-profile {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 7rem;
+  }
+
+  /* 장소: 내용만큼 너비, 최대 9rem */
+  &.map-search-segment--fixed-location {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 9rem;
   }
 }
 
@@ -455,6 +525,14 @@ const searchSuggestions = computed(() => {
   gap: v.$space-xs;
   min-width: 0;
   white-space: normal;
+
+  /* 동 이름이 길 때 ellipsis (flex에서 줄어들 수 있게) */
+  .map-search-segment-value-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .map-search-segment-chevron {
@@ -628,10 +706,9 @@ const searchSuggestions = computed(() => {
   flex-shrink: 0;
 }
 
-.map-category-chips {
+.map-category-subjects {
   display: flex;
   align-items: center;
-  gap: v.$space-xs;
   flex-wrap: nowrap;
   min-width: 0;
   overflow-x: auto;

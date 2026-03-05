@@ -300,6 +300,10 @@ function toggleSubject(opt: string) {
   else selectedSubjects.value = selectedSubjects.value.filter((x) => x !== opt)
 }
 
+function selectAllSubjects(subjects: string[]) {
+  selectedSubjects.value = [...subjects]
+}
+
 let map: unknown = null
 const markers: unknown[] = []
 const markerByAcademyId = new Map<string, unknown>()
@@ -1360,9 +1364,10 @@ onMounted(async () => {
     component: MapCategoryBar,
     props: subHeaderProps,
     listeners: {
-      'toggle-subject': (opt: unknown) => toggleSubject(opt as string),
+      toggleSubject: (opt: unknown) => toggleSubject(opt as string),
+      selectAllSubjects: (subjects: unknown) => selectAllSubjects(subjects as string[]),
       select: (academy: unknown) => handleSearchSelect(academy as Academy),
-      'clear-search': clearSearchSelection,
+      clearSearch: clearSearchSelection,
     },
   })
 
