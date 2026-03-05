@@ -6,7 +6,7 @@
         v-model="searchQuery"
         type="search"
         class="map-search-input"
-        placeholder="학원명, 주소로 검색"
+        placeholder="학원명으로 검색"
         autocomplete="off"
         @focus="showSearchDropdown = true"
       />
@@ -79,11 +79,7 @@ const searchSuggestions = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   if (!q) return []
   return props.academies
-    .filter((a) => {
-      const nameMatch = a.name.toLowerCase().includes(q)
-      const addressMatch = (a.address ?? '').toLowerCase().includes(q) || (a.address_road ?? '').toLowerCase().includes(q)
-      return nameMatch || addressMatch
-    })
+    .filter((a) => a.name.toLowerCase().includes(q))
     .slice(0, 8)
 })
 

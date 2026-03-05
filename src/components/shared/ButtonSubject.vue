@@ -46,8 +46,6 @@ defineEmits<{
   flex-direction: column;
   align-items: center;
   gap: v.$space-xs;
-  min-width: 4.5rem;
-  padding: 0 v.$space-md;
   color: v.$color-text-dimmer;
   cursor: pointer;
   transition: color v.$transition-fast;

@@ -6,7 +6,7 @@
       'has-sub': !!subHeaderStore.entry,
     }"
   >
-    <div class="header-inner flex items-center justify-between gap-md p-sm px-lg">
+    <div class="header-inner flex items-center justify-between gap-md pt-sm px-lg">
       <div class="header-left flex-shrink-0">
         <router-link
           v-if="subHeaderStore.entry"
@@ -165,9 +165,6 @@ function goBack() {
     flex-wrap: nowrap;
     align-items: flex-start;
     justify-content: space-between;
-    padding-left: 0;
-    padding-right: 0;
-    /* 좌우 패딩은 .header-root.page-padding에서 적용 */
   }
 
   .header-root.has-sub .header-left {

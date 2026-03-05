@@ -268,6 +268,8 @@ function handleSearchSelect(academy: Academy) {
   skipClearSelectionFromFilter.value = true
   searchSelectedAcademyId.value = academy.id
   selectedAcademy.value = academy
+  // 지도를 선택한 학원 위치로 이동하고 해당 마커가 보이게 함
+  nextTick(() => panMapToAcademy(academy))
   setTimeout(() => { skipClearSelectionFromFilter.value = false }, 0)
 }
 

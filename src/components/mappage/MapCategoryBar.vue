@@ -87,8 +87,8 @@
               <span class="type-size-2xs type-weight-semibold color-dim"
                 >검색</span
               >
-              <p class="type-weight-semibold">
-                {{ searchQuery || "학원명, 주소" }}
+              <p class="map-search-query-text type-weight-semibold">
+                {{ searchQuery || "학원명" }}
               </p>
             </div>
             <div
@@ -101,7 +101,7 @@
                 v-model="searchQuery"
                 type="search"
                 class="map-search-input type-weight-semibold"
-                placeholder="학원명, 주소"
+                placeholder="학원명"
                 autocomplete="off"
                 aria-label="학원 검색"
                 @focus="isSearchFocused = true"
@@ -146,10 +146,10 @@
               role="option"
               @mousedown.prevent="selectSuggestion(academy)"
             >
-              <p class="map-search-suggestion-name">{{ academy.name }}</p>
+              <p class="type-weight-semibold">{{ academy.name }}</p>
               <p
                 v-if="academy.address || academy.address_road"
-                class="map-search-suggestion-address color-dim"
+                class="type-size-xs color-dim"
               >
                 <template v-if="academy.address">{{
                   academy.address
@@ -163,26 +163,18 @@
               </p>
             </button>
           </template>
-          <p v-else class="map-search-empty color-dim">결과가 없습니다.</p>
+          <p v-else class="p-md color-dim">결과가 없습니다.</p>
         </div>
       </Transition>
     </div>
 
-    <!-- 과목 -->
-    <div v-if="subjectOptions.length" class="map-category-subjects">
-      <ButtonSubject
-        label="전체"
-        :image="allSubjectsIconUrl"
-        :active="isAllSubjectsSelected"
-        @click="emit('selectAllSubjects', [...subjectOptions])"
-      />
-      <ButtonSubject
-        v-for="opt in subjectOptions"
-        :key="'sub-' + opt"
-        :label="opt"
-        :image="getSubjectImage(opt)"
-        :active="selectedSubjects.includes(opt)"
-        @click="emit('toggleSubject', opt)"
+    <!-- 과목: 별도 컴포넌트 + 뷰포트 전체 너비(헤더 max-width 영향 안 받음) -->
+    <div class="map-category-subjects-breakout">
+      <MapCategorySubjects
+        :subject-options="subjectOptions"
+        :selected-subjects="selectedSubjects"
+        @toggle-subject="(opt) => emit('toggleSubject', opt)"
+        @select-all-subjects="(subjects) => emit('selectAllSubjects', subjects)"
       />
     </div>
   </div>
@@ -198,7 +190,7 @@ import {
   nextTick,
 } from "vue";
 import type { Academy } from "@/types/academy";
-import ButtonSubject from "@/components/shared/ButtonSubject.vue";
+import MapCategorySubjects from "@/components/mappage/MapCategorySubjects.vue";
 import Icon from "@/components/shared/Icon.vue";
 import { mdiMagnify, mdiChevronDown, mdiClose } from "@mdi/js";
 import { useMyNeighborhoodStore } from "@/stores/myNeighborhood";
@@ -206,7 +198,6 @@ import { useProfileStore } from "@/stores/profile";
 import {
   SUBJECT_LIST,
   getCanonicalSubjects,
-  getSubjectImage,
   type Subject,
 } from "@/constants/subjectTypes";
 
@@ -325,27 +316,12 @@ const subjectOptions = computed(() => {
   });
 });
 
-const allSubjectsIconUrl = "/all-subjects.png";
-
-const isAllSubjectsSelected = computed(() => {
-  if (!subjectOptions.value.length) return false;
-  return subjectOptions.value.every((opt) =>
-    props.selectedSubjects.includes(opt),
-  );
-});
-
-/** 선택된 지역·연령·과목 내 학원 중 어와 일치하는 목록 (자동완성용) */
+/** 선택된 지역·연령·과목 내 학원 중 학원명과 일치하는 목록 (자동완성용) */
 const searchSuggestions = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
   if (!q) return [];
   return props.academies
-    .filter((a) => {
-      const nameMatch = a.name.toLowerCase().includes(q);
-      const addressMatch =
-        (a.address ?? "").toLowerCase().includes(q) ||
-        (a.address_road ?? "").toLowerCase().includes(q);
-      return nameMatch || addressMatch;
-    })
+    .filter((a) => a.name.toLowerCase().includes(q))
     .slice(0, 8);
 });
 </script>
@@ -356,9 +332,18 @@ const searchSuggestions = computed(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: v.$space-xl;
-  margin-bottom: v.$space-sm;
+  gap: v.$space-sm;
   background: v.$color-bg-base;
+}
+
+/* 과목 행: 헤더 .header-sub의 max-width(36rem) 밖으로 나와 뷰포트 전체 너비 사용 */
+.map-category-subjects-breakout {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 /* 검색 바 + 자동완성 floating 기준 */
@@ -374,6 +359,8 @@ const searchSuggestions = computed(() => {
   border: none;
   background: transparent;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   &::placeholder {
     color: v.$color-text-dim;
@@ -570,6 +557,15 @@ const searchSuggestions = computed(() => {
   justify-content: center;
   gap: v.$space-2xs;
   padding: v.$space-sm v.$space-md;
+  overflow: hidden;
+}
+
+/* 검색 영역 텍스트(비확장 시): 프로필·장소처럼 ellipsis */
+.map-search-query-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .map-search-input-area--expanded {
@@ -653,21 +649,6 @@ const searchSuggestions = computed(() => {
   }
 }
 
-.map-search-suggestion-name {
-  margin: 0;
-  font-weight: 600;
-}
-
-.map-search-suggestion-address {
-  margin: v.$space-2xs 0 0;
-  font-size: 0.8125rem;
-}
-
-.map-search-empty {
-  margin: 0;
-  padding: v.$space-md;
-}
-
 .dropdown-enter-active,
 .dropdown-leave-active {
   transition:
@@ -704,19 +685,5 @@ const searchSuggestions = computed(() => {
 
 .map-category-label {
   flex-shrink: 0;
-}
-
-.map-category-subjects {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-
-  .chip {
-    flex-shrink: 0;
-  }
 }
 </style>
