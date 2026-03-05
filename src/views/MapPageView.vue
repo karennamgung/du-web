@@ -135,18 +135,6 @@ const subHeaderProps = reactive({
   selectedSubjects: [] as string[],
 })
 
-watch(
-  () => [academies.value, loading.value, profileStore.selectedAgeGroupsForMap, selectedSubjects.value, academiesInSelectedAddresses.value] as const,
-  ([a, l, ag, s, forSearch]) => {
-    subHeaderProps.academies = a
-    subHeaderProps.academiesForSearch = forSearch ?? a
-    subHeaderProps.loading = l
-    subHeaderProps.selectedAgeGroups = Array.isArray(ag) ? [...ag] : []
-    subHeaderProps.selectedSubjects = s
-  },
-  { immediate: true }
-)
-
 /** 모바일: 확장 시 최대 높이(px). 필터(대상연령/과목) 실제 하단 기준으로 꽉 차게 */
 function getMaxSheetHeightPx(): number {
   if (typeof window === 'undefined') return 500
@@ -372,6 +360,19 @@ const academiesInSelectedAddresses = computed(() => {
   if (!addrs?.length) return academies.value
   return academies.value.filter(academyMatchesAnySelectedAddress)
 })
+
+/** 서브 헤더 props 동기화 (academiesInSelectedAddresses 정의 이후에 등록) */
+watch(
+  () => [academies.value, loading.value, profileStore.selectedAgeGroupsForMap, selectedSubjects.value, academiesInSelectedAddresses.value] as const,
+  ([a, l, ag, s, forSearch]) => {
+    subHeaderProps.academies = a
+    subHeaderProps.academiesForSearch = forSearch ?? a
+    subHeaderProps.loading = l
+    subHeaderProps.selectedAgeGroups = Array.isArray(ag) ? [...ag] : []
+    subHeaderProps.selectedSubjects = s
+  },
+  { immediate: true }
+)
 
 const sortedAcademyList = computed(() => {
   const list = [...filteredAcademies.value]
