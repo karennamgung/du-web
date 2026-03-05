@@ -129,15 +129,17 @@ const subHeaderStore = useSubHeaderStore()
 /** 서브 헤더(필터 바)에 전달할 props — MapPageView 상태와 동기화 */
 const subHeaderProps = reactive({
   academies: [] as Academy[],
+  academiesForSearch: [] as Academy[],
   loading: false,
   selectedAgeGroups: [] as string[],
   selectedSubjects: [] as string[],
 })
 
 watch(
-  () => [academies.value, loading.value, profileStore.selectedAgeGroupsForMap, selectedSubjects.value] as const,
-  ([a, l, ag, s]) => {
+  () => [academies.value, loading.value, profileStore.selectedAgeGroupsForMap, selectedSubjects.value, academiesInSelectedAddresses.value] as const,
+  ([a, l, ag, s, forSearch]) => {
     subHeaderProps.academies = a
+    subHeaderProps.academiesForSearch = forSearch ?? a
     subHeaderProps.loading = l
     subHeaderProps.selectedAgeGroups = Array.isArray(ag) ? [...ag] : []
     subHeaderProps.selectedSubjects = s

@@ -2,7 +2,7 @@
   <div
     v-if="subjectOptions.length"
     ref="outerRef"
-    class="map-category-subjects-outer flex pb-md pl-lg pr-lg"
+    class="map-category-subjects-outer flex pb-lg pl-lg pr-lg"
     :class="{ 'justify-center': !isOverflowing, 'justify-start': isOverflowing }"
   >
     <div ref="innerRef" class="map-category-subjects flex items-center gap-lg">
@@ -85,6 +85,16 @@ watch(
     }
   },
   { flush: 'post' }
+)
+
+// 전체 비선택 시 자동으로 전체 과목 선택
+watch(
+  () => props.selectedSubjects.length,
+  (len, prevLen) => {
+    if (len === 0 && props.subjectOptions.length > 0 && prevLen !== undefined) {
+      emit('selectAllSubjects', [...props.subjectOptions])
+    }
+  }
 )
 </script>
 

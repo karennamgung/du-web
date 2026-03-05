@@ -138,6 +138,14 @@
           aria-label=" 결과"
         >
           <template v-if="searchSuggestions.length">
+            <div
+              v-if="locationSummaryData"
+              class="map-search-suggestions-header type-size-2xs type-weight-semibold color-dim"
+            >
+              <span>{{ locationSummaryData.name }}</span>
+              <span v-if="locationSummaryData.extra">{{ locationSummaryData.extra }}</span>
+              <span>지역 내 학원 리스트</span>
+            </div>
             <button
               v-for="academy in searchSuggestions"
               :key="academy.id"
@@ -203,6 +211,8 @@ import {
 
 const props = defineProps<{
   academies: Academy[];
+  /** 자동완성에 쓸 학원 목록. 없으면 academies 사용. 선택된 장소 내 학원만 넘기면 자동완성은 그 안에서만 검색 */
+  academiesForSearch?: Academy[];
   loading: boolean;
   selectedSubjects: string[];
 }>();
@@ -316,11 +326,12 @@ const subjectOptions = computed(() => {
   });
 });
 
-/** 선택된 지역·연령·과목 내 학원 중 학원명과 일치하는 목록 (자동완성용) */
+/** 선택된 장소(또는 전체) 내 학원 중 학원명과 일치하는 목록 (자동완성용) */
 const searchSuggestions = computed(() => {
   const q = searchQuery.value.trim().toLowerCase();
   if (!q) return [];
-  return props.academies
+  const source = props.academiesForSearch ?? props.academies;
+  return source
     .filter((a) => a.name.toLowerCase().includes(q))
     .slice(0, 8);
 });
@@ -332,7 +343,7 @@ const searchSuggestions = computed(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: v.$space-sm;
+  gap: v.$space-md;
   background: v.$color-bg-base;
 }
 
@@ -486,7 +497,7 @@ const searchSuggestions = computed(() => {
   &.map-search-segment--fixed-profile {
     flex: 0 1 auto;
     width: auto;
-    min-width: 0;
+    min-width: 4rem;
     max-width: 7rem;
   }
 
@@ -494,7 +505,7 @@ const searchSuggestions = computed(() => {
   &.map-search-segment--fixed-location {
     flex: 0 1 auto;
     width: auto;
-    min-width: 0;
+    min-width: 5rem;
     max-width: 9rem;
   }
 }
@@ -624,6 +635,14 @@ const searchSuggestions = computed(() => {
   border-radius: v.$radius-md;
   z-index: v.$z-dropdown;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.map-search-suggestions-header {
+  display: flex;
+  align-items: center;
+  gap: v.$space-2xs;
+  padding: v.$space-sm v.$space-md;
+  border-bottom: 1px solid v.$color-border-dim;
 }
 
 .map-search-suggestion {
