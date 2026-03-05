@@ -128,7 +128,7 @@ function onPointerDown(e: MouseEvent | TouchEvent) {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: v.$space-md 0;
+  padding-top: v.$space-md;
 }
 
 .modal-header-handle-bar {
@@ -145,7 +145,7 @@ function onPointerDown(e: MouseEvent | TouchEvent) {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: v.$space-sm;
-  padding: v.$space-sm 0;
+  padding: v.$space-lg 0 v.$space-sm 0;
 
 
   @media (min-width: 768px) {
