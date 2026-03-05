@@ -343,7 +343,7 @@ const searchSuggestions = computed(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: v.$space-md;
+  gap: v.$space-lg;
   background: v.$color-bg-base;
 }
 

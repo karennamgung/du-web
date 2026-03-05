@@ -10,7 +10,7 @@
         label="전체 과목"
         :image="allSubjectsIconUrl"
         :active="isAllSubjectsSelected"
-        @click="emit('selectAllSubjects', [...subjectOptions])"
+        @click="onClickAllSubjects"
       />
       <ButtonSubject
         v-for="opt in subjectOptions"
@@ -45,6 +45,17 @@ const isAllSubjectsSelected = computed(() => {
   if (!props.subjectOptions.length) return false
   return props.subjectOptions.every((opt) => props.selectedSubjects.includes(opt))
 })
+
+const justClearedAllRef = ref(false)
+
+function onClickAllSubjects() {
+  if (isAllSubjectsSelected.value) {
+    justClearedAllRef.value = true
+    emit('selectAllSubjects', [])
+  } else {
+    emit('selectAllSubjects', [...props.subjectOptions])
+  }
+}
 
 const outerRef = ref<HTMLElement | null>(null)
 const innerRef = ref<HTMLElement | null>(null)
@@ -87,11 +98,15 @@ watch(
   { flush: 'post' }
 )
 
-// 전체 비선택 시 자동으로 전체 과목 선택
+// 전체 비선택 시 자동으로 전체 과목 선택 (단, "전체 과목" 클릭으로 해제한 경우는 제외)
 watch(
   () => props.selectedSubjects.length,
   (len, prevLen) => {
     if (len === 0 && props.subjectOptions.length > 0 && prevLen !== undefined) {
+      if (justClearedAllRef.value) {
+        justClearedAllRef.value = false
+        return
+      }
       emit('selectAllSubjects', [...props.subjectOptions])
     }
   }
