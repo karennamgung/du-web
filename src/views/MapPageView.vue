@@ -73,6 +73,18 @@ import { supabase } from '@/lib/supabase'
 import type { Academy } from '@/types/academy'
 import { mdiMapMarker, mdiMapOutline, mdiCircle, mdiSquare } from '@mdi/js'
 import { getSubjectIconPath, MY_LOCATION_MARKER_ICON, getCanonicalSubject, isValidAgeGroup, isValidSubject, getAgeGroupsFromAges } from '@/constants/subjectTypes'
+import {
+  zCanvas,
+  zToast,
+  zFloating,
+  colorPrimary,
+  colorTextInverse,
+  colorTextBase,
+  colorTextDim,
+  colorBgDimmer,
+  colorBorderDim,
+  colorBorderStronger,
+} from '@/constants/styleTokens'
 import { useProfileStore } from '@/stores/profile'
 import { useSubHeaderStore } from '@/stores/subHeader'
 
@@ -851,16 +863,10 @@ function updateMarkerZIndex() {
   if (!map) return
   const selectedId = selectedAcademy.value?.id ?? null
   const hoveredId = hoveredAcademy.value?.id ?? null
-  // z-index 토큰 사용 (CSS 변수에서 가져오거나 fallback)
-  const getZIndex = (token: string, fallback: number) => {
-    if (typeof document === 'undefined') return fallback
-    const value = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
-    return value ? parseInt(value, 10) : fallback
-  }
   const Z = {
-    base: getZIndex('--z-canvas', 10),
-    selected: getZIndex('--z-toast', 100),
-    hovered: getZIndex('--z-floating', 200)
+    base: zCanvas,
+    selected: zToast,
+    hovered: zFloating,
   }
   const setZ = (m: unknown, z: number) => {
     try {
@@ -899,54 +905,24 @@ function updateMarkerZIndex() {
 
 
 /** 마커 HTML: MDI 네모(square) 아이콘만 (텍스트 없음, 내 위치용) - 선택된 마커와 동일한 스타일 적용 */
-function createCircleIconHtml(color: string = '#ff5a5f'): string {
-  // 선택된 마커와 동일한 스타일: primary 배경, 흰색 아이콘, 흰색 테두리
-  const bgColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#ff5a5f')
-    : '#ff5a5f'
-  const iconColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue('--color-text-inverse').trim() || '#ffffff')
-    : '#ffffff'
-  const borderColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue('--color-text-inverse').trim() || '#ffffff')
-    : '#ffffff'
-  const bgEscaped = bgColor.replace(/"/g, '&quot;')
-  const iconEscaped = iconColor.replace(/"/g, '&quot;')
-  const borderEscaped = borderColor.replace(/"/g, '&quot;')
+function createCircleIconHtml(_color: string = '#ff5a5f'): string {
+  const bgEscaped = colorPrimary.replace(/"/g, '&quot;')
+  const iconEscaped = colorTextInverse.replace(/"/g, '&quot;')
+  const borderEscaped = colorTextInverse.replace(/"/g, '&quot;')
   const iconSvg = `<svg viewBox="0 0 24 24" width="${MARKER_ICON_SIZE}" height="${MARKER_ICON_SIZE}" xmlns="http://www.w3.org/2000/svg"><path d="${MY_LOCATION_MARKER_ICON}" fill="${iconEscaped}"/></svg>`
   return `<span style="display:flex;align-items:center;justify-content:center;padding:0.25rem;background-color:${bgEscaped};border-radius:50%;border:2px solid ${borderEscaped};">${iconSvg}</span>`
 }
 
 /** 마커 HTML: 과목별 MDI 아이콘 + 학원 이름 칩 (선택: 배경 primary+아이콘 white+테두리 white, 호버: 배경 dimmer+아이콘 dim+테두리 stronger, 일반: 배경 dimmer+아이콘 dim+테두리 dim). 과목 아이콘은 subjectTypes.getSubjectIconPath 사용 */
 function createMarkerIconHtml(academyName: string, isSelected: boolean, subjects: string[] = [], isHovered: boolean = false): string {
-  // 선택: primary 배경, 호버/일반: dimmer 배경
-  const bgColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue(isSelected ? '--color-primary' : '--color-bg-base').trim() || (isSelected ? '#ff5a5f' : '#f5f5f5'))
-    : (isSelected ? '#ff5a5f' : '#f5f5f5')
-  // 선택: 흰색 아이콘, 호버/일반: dim 색상 아이콘 (호버 시 아이콘 색상 변경 없음)
-  const iconColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue(isSelected ? '--color-text-inverse' : '--color-text-dim').trim() || (isSelected ? '#ffffff' : '#717171'))
-    : (isSelected ? '#ffffff' : '#717171')
+  const bgColor = isSelected ? colorPrimary : colorBgDimmer
+  const iconColor = isSelected ? colorTextInverse : colorTextDim
   const baseClasses = 'chip chip-small'
   const activeClass = isSelected ? ' chip-active' : ''
   const classes = baseClasses + activeClass
-  // 선택: 흰색 테두리, 호버: stronger 테두리, 일반: dim 테두리
-  const borderColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue(
-        isSelected ? '--color-text-inverse' : (isHovered ? '--color-border-stronger' : '--color-border-dim')
-      ).trim() || (isSelected ? '#ffffff' : (isHovered ? '#d0d0d0' : '#ebebeb')))
-    : (isSelected ? '#ffffff' : (isHovered ? '#d0d0d0' : '#ebebeb'))
-  // 학원 이름 칩 스타일: 선택/호버 시 테두리와 텍스트 색상 변경
-  const chipBorderColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue(
-        isSelected ? '--color-border-stronger' : (isHovered ? '--color-border-stronger' : '--color-border-dim')
-      ).trim() || (isSelected ? '#d0d0d0' : (isHovered ? '#d0d0d0' : '#ebebeb')))
-    : (isSelected ? '#d0d0d0' : (isHovered ? '#d0d0d0' : '#ebebeb'))
-  const chipTextColor = typeof document !== 'undefined'
-    ? (getComputedStyle(document.documentElement).getPropertyValue(
-        isSelected ? '--color-text-base' : (isHovered ? '--color-text-base' : '--color-text-dim')
-      ).trim() || (isSelected ? '#1a1a1a' : (isHovered ? '#1a1a1a' : '#717171')))
-    : (isSelected ? '#1a1a1a' : (isHovered ? '#1a1a1a' : '#717171'))
+  const borderColor = isSelected ? colorTextInverse : (isHovered ? colorBorderStronger : colorBorderDim)
+  const chipBorderColor = isSelected ? colorBorderStronger : (isHovered ? colorBorderStronger : colorBorderDim)
+  const chipTextColor = isSelected ? colorTextBase : (isHovered ? colorTextBase : colorTextDim)
   const chipFontWeight = isSelected || isHovered ? '600' : '500'
   const bgEscaped = bgColor.replace(/"/g, '&quot;')
   const iconEscaped = iconColor.replace(/"/g, '&quot;')

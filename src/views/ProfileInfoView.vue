@@ -298,6 +298,10 @@ function cancelAddChild() {
   showAddChildForm.value = false
   editingChildIndex.value = null
 }
+
+defineExpose({
+  openAddChildForm,
+})
 </script>
 
 <style lang="scss" scoped>

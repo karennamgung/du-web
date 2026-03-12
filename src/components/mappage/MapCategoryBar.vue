@@ -9,7 +9,7 @@
             type="button"
             class="map-search-segment map-search-segment--fixed map-search-segment--fixed-profile"
             aria-label="프로필 선택"
-            @click="profile.showProfileModal = true"
+            @click="openPanel = openPanel === 'profile' ? null : 'profile'"
           >
             <div class="map-search-segment-inner">
               <span class="type-size-2xs type-weight-semibold color-dim"
@@ -26,7 +26,7 @@
             class="map-search-segment map-search-segment--fixed map-search-segment--fixed-location"
             aria-haspopup="dialog"
             aria-label="동네 찾기"
-            @click="openLocationModal"
+            @click="openLocationPanel"
           >
             <div class="map-search-segment-inner">
               <span class="type-size-2xs type-weight-semibold color-dim"
@@ -122,56 +122,40 @@
             class="btn btn-primary btn-rounded btn-large"
             aria-label="검색"
             @mousedown.prevent="expandedSearchInputRef?.focus()"
-            @click="expandSearch"
+            @click="toggleSearch"
           >
             <Icon class="map-search-circle-icon" :path="mdiMagnify" />
           </button>
         </div>
       </div>
 
-      <!-- 자동완성: 검색 바 바로 밑에 floating -->
+      <!-- 자동완성: SearchDropdown (데스크탑 floating / 모바일 full) -->
       <Transition name="dropdown">
         <div
           v-if="(isSearchFocused || isSearchExpanded) && searchQuery.trim()"
-          class="map-search-suggestions-dropdown"
-          role="listbox"
-          aria-label=" 결과"
+          class="map-search-dropdown-wrap"
         >
-          <template v-if="searchSuggestions.length">
-            <div
-              v-if="locationSummaryData"
-              class="map-search-suggestions-header type-size-2xs type-weight-semibold color-dim"
-            >
-              <span>{{ locationSummaryData.name }}</span>
-              <span v-if="locationSummaryData.extra">{{ locationSummaryData.extra }}</span>
-              <span>지역 내 학원 리스트</span>
-            </div>
-            <button
-              v-for="academy in searchSuggestions"
-              :key="academy.id"
-              type="button"
-              class="map-search-suggestion"
-              role="option"
-              @mousedown.prevent="selectSuggestion(academy)"
-            >
-              <p class="type-weight-semibold">{{ academy.name }}</p>
-              <p
-                v-if="academy.address || academy.address_road"
-                class="type-size-xs color-dim"
-              >
-                <template v-if="academy.address">{{
-                  academy.address
-                }}</template>
-                <template v-if="academy.address && academy.address_road">
-                  ·
-                </template>
-                <template v-if="academy.address_road">{{
-                  academy.address_road
-                }}</template>
-              </p>
-            </button>
-          </template>
-          <p v-else class="p-md color-dim">결과가 없습니다.</p>
+          <MapSearchDropdown
+            mode="academy"
+            :location-summary-data="locationSummaryData"
+            :suggestions="searchSuggestionsForDropdown"
+            @select="selectSuggestionById"
+          />
+        </div>
+      </Transition>
+      <!-- 프로필/장소 패널: SearchDropdown (ModalSmall 대신) — 학원 검색 중일 때는 숨김 -->
+      <Transition name="dropdown">
+        <div
+          v-if="(openPanel === 'profile' || openPanel === 'location') && !((isSearchFocused || isSearchExpanded) && searchQuery.trim())"
+          class="map-search-dropdown-wrap"
+        >
+          <MapSearchDropdown
+            ref="mapSearchDropdownRef"
+            :mode="openPanel"
+            :profile-panel-title="profilePanelTitle"
+            @close="openPanel = null"
+            @apply="onLocationApply"
+          />
         </div>
       </Transition>
     </div>
@@ -199,6 +183,7 @@ import {
 } from "vue";
 import type { Academy } from "@/types/academy";
 import MapCategorySubjects from "@/components/mappage/MapCategorySubjects.vue";
+import MapSearchDropdown from "@/components/mappage/MapSearchDropdown.vue";
 import Icon from "@/components/shared/Icon.vue";
 import { mdiMagnify, mdiChevronDown, mdiClose } from "@mdi/js";
 import { useMyNeighborhoodStore } from "@/stores/myNeighborhood";
@@ -231,21 +216,50 @@ const expandedSearchInputRef = ref<HTMLInputElement | null>(null);
 const searchQuery = ref("");
 const isSearchFocused = ref(false);
 const isSearchExpanded = ref(false);
+/** 프로필/장소 패널 (지도 페이지에서는 ModalSmall 대신 SearchDropdown으로 표시) */
+const openPanel = ref<"profile" | "location" | null>(null);
+const mapSearchDropdownRef = ref<InstanceType<typeof MapSearchDropdown> | null>(null);
 
 watch(searchQuery, (q) => {
   if (!q?.trim()) emit("clearSearch");
 });
 
-function openLocationModal() {
-  myNeighborhood.showLocationSelectModal = true;
+function openLocationPanel() {
+  if (openPanel.value === "location") {
+    openPanel.value = null;
+    return;
+  }
+  openPanel.value = "location";
+  nextTick(() => mapSearchDropdownRef.value?.syncLocationFromStore());
 }
 
+function onLocationApply() {
+  myNeighborhood.requestFitMapToSelectedAddress = true;
+  openPanel.value = null;
+}
+
+/** 프로필 패널 제목 (모바일용) */
+const profilePanelTitle = computed(() => {
+  if (profile.profile?.user_type === "parent") return "프로필 선택하기";
+  if (profile.profile?.user_type === "student") return "프로필";
+  return "프로필";
+});
+
 function expandSearch() {
+  openPanel.value = null;
   isSearchExpanded.value = true;
   isSearchFocused.value = true;
   nextTick(() => {
     expandedSearchInputRef.value?.focus();
   });
+}
+
+function toggleSearch() {
+  if (isSearchExpanded.value && searchQuery.value.trim()) {
+    collapseSearch();
+  } else {
+    expandSearch();
+  }
 }
 
 function collapseSearch() {
@@ -272,6 +286,7 @@ function onDocumentClick(e: MouseEvent) {
   if (barRef.value && !barRef.value.contains(e.target as Node)) {
     isSearchFocused.value = false;
     isSearchExpanded.value = false;
+    openPanel.value = null;
   }
 }
 
@@ -335,6 +350,20 @@ const searchSuggestions = computed(() => {
     .filter((a) => a.name.toLowerCase().includes(q))
     .slice(0, 8);
 });
+
+/** SearchDropdown용 아이템 형식 */
+const searchSuggestionsForDropdown = computed(() =>
+  searchSuggestions.value.map((a) => ({
+    id: a.id,
+    primaryText: a.name,
+    secondaryText: [a.address, a.address_road].filter(Boolean).join(" · ") || undefined,
+  }))
+);
+
+function selectSuggestionById(id: string) {
+  const academy = searchSuggestions.value.find((a) => a.id === id);
+  if (academy) selectSuggestion(academy);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -343,7 +372,7 @@ const searchSuggestions = computed(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: v.$space-lg;
+  gap: v.$space-md;
   background: v.$color-bg-base;
 }
 
@@ -359,6 +388,10 @@ const searchSuggestions = computed(() => {
 
 /* 검색 바 + 자동완성 floating 기준 */
 .map-search-bar-wrap {
+  position: relative;
+}
+
+.map-search-dropdown-wrap {
   position: relative;
 }
 

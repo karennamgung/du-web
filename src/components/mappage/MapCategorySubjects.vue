@@ -39,7 +39,7 @@ const emit = defineEmits<{
   selectAllSubjects: [subjects: string[]]
 }>()
 
-const allSubjectsIconUrl = '/all-subjects.png'
+const allSubjectsIconUrl = '/subjects/all-subjects.png'
 
 const isAllSubjectsSelected = computed(() => {
   if (!props.subjectOptions.length) return false
