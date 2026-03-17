@@ -152,7 +152,6 @@
           <MapSearchDropdown
             ref="mapSearchDropdownRef"
             :mode="openPanel"
-            :profile-panel-title="profilePanelTitle"
             @close="openPanel = null"
             @apply="onLocationApply"
           />
@@ -237,13 +236,6 @@ function onLocationApply() {
   myNeighborhood.requestFitMapToSelectedAddress = true;
   openPanel.value = null;
 }
-
-/** 프로필 패널 제목 (모바일용) */
-const profilePanelTitle = computed(() => {
-  if (profile.profile?.user_type === "parent") return "프로필 선택하기";
-  if (profile.profile?.user_type === "student") return "프로필";
-  return "프로필";
-});
 
 function expandSearch() {
   openPanel.value = null;

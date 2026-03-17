@@ -10,11 +10,8 @@
     :role="ariaRole"
     :aria-label="ariaLabel"
   >
-    <!-- 모바일: 상단 제목 + 검색 영역 (플로팅 카드 내부) -->
+    <!-- 모바일: 검색 영역 (플로팅 카드 내부) -->
     <template v-if="isMobile">
-      <h2 v-if="mobileTitle" class="search-dropdown-mobile-title type-weight-bold">
-        {{ mobileTitle }}
-      </h2>
       <div v-if="showSearchInput" class="search-dropdown-search-slot mb-md">
         <slot name="search-input" />
       </div>
@@ -42,7 +39,6 @@ import { ref, onMounted, onBeforeUnmount, useSlots, computed, nextTick } from 'v
 
 const props = withDefaults(
   defineProps<{
-    mobileTitle?: string
     showSearchInput?: boolean
     ariaLabel?: string
     ariaRole?: string
@@ -62,7 +58,7 @@ const rootRef = ref<HTMLElement | null>(null)
 /** 내용이 넘칠 때 브라우저 바닥에서 0.5rem 위로 오도록 제한 */
 const dropdownMaxHeightStyle = ref<{ maxHeight?: string }>({})
 
-const BOTTOM_GAP_REM = 0.5
+const BOTTOM_GAP_REM = 1
 const BOTTOM_GAP_PX = BOTTOM_GAP_REM * 16
 
 function updateMaxHeight() {
@@ -99,7 +95,8 @@ onBeforeUnmount(() => {
 .search-dropdown {
   background: v.$color-bg-base;
   border-radius: v.$radius-lg;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: v.$space-lg;
+  box-shadow: v.$shadow-lg;
   border: 1px solid v.$color-border-dim;
   overflow: hidden;
 }
@@ -110,7 +107,7 @@ onBeforeUnmount(() => {
   top: 100%;
   left: 0;
   right: 0;
-  margin-top: v.$space-2xs;
+  margin-top: v.$space-xs;
   height: fit-content;
   max-height: none; /* JS에서 인라인으로 설정 */
   overflow-y: auto;
@@ -130,13 +127,14 @@ onBeforeUnmount(() => {
   overflow-y: auto;
 }
 
-/* 모바일: 전체 너비 플로팅 카드 (max-height는 JS로 뷰포트 기준 적용) */
+/* 모바일: 전체 너비 플로팅 카드 (위에서 0.5rem 더 내려옴, 데스크탑과 동일) */
 .search-dropdown--floating-mobile {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: auto;
+  margin-top: v.$space-xs;
   max-height: none; /* JS에서 인라인으로 설정 */
   display: flex;
   flex-direction: column;
@@ -144,15 +142,9 @@ onBeforeUnmount(() => {
   z-index: v.$z-modal;
 }
 
-.search-dropdown--floating-mobile .search-dropdown-mobile-title {
-  flex-shrink: 0;
-  padding: v.$space-md v.$space-md v.$space-sm;
-  font-size: 1.25rem;
-}
-
 .search-dropdown--floating-mobile .search-dropdown-search-slot {
   flex-shrink: 0;
-  padding: 0 v.$space-md v.$space-md;
+  padding: v.$space-md v.$space-md v.$space-md;
 }
 
 .search-dropdown--floating-mobile .search-dropdown-header {
@@ -169,11 +161,6 @@ onBeforeUnmount(() => {
 
 .search-dropdown--floating-mobile .search-dropdown-footer {
   flex-shrink: 0;
-}
-
-.search-dropdown-mobile-title {
-  font-size: 1.25rem;
-  margin-bottom: v.$space-sm;
 }
 
 .search-dropdown-header {

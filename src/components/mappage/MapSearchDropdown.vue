@@ -2,7 +2,6 @@
   <SearchDropdown
     :aria-label="ariaLabel"
     :aria-role="mode === 'academy' ? 'listbox' : 'dialog'"
-    :mobile-title="mobileTitle"
   >
     <!-- 학원 검색 자동완성 -->
     <template v-if="mode === 'academy'" #header>
@@ -72,7 +71,6 @@ const props = defineProps<{
   mode: "academy" | "profile" | "location";
   locationSummaryData?: MapSearchDropdownLocationSummary | null;
   suggestions?: MapSearchDropdownSuggestion[];
-  profilePanelTitle?: string;
 }>();
 
 const emit = defineEmits<{
@@ -93,12 +91,6 @@ const ariaLabel = computed(() => {
   if (props.mode === "academy") return "학원 검색 결과";
   if (props.mode === "profile") return "프로필 선택";
   return "동네 찾기";
-});
-
-const mobileTitle = computed(() => {
-  if (props.mode === "profile") return props.profilePanelTitle ?? "프로필";
-  if (props.mode === "location") return "동네 찾기";
-  return undefined;
 });
 
 defineExpose({
